@@ -1,8 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
 
 function AdminPanel() {
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const status = sessionStorage.getItem("admin");
+
+    if (status == null) {
+      navigate('/admin')
+    }
+  }, [])
+
   return (
     <>
       <div className="flex h-screen">

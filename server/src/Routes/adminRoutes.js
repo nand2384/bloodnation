@@ -1,7 +1,14 @@
 const express = require('express');
-const { adminLogin, fetchUsersService, fetchBloodStockService } = require('../Models/adminModel');
-
+// const multer = require('multer');
+// const cors = require('cors');
+const { adminLogin, fetchUsersService, fetchBloodStockService, addBankService } = require('../Models/adminModel');
 const router = express.Router();
+
+// const app = express();
+// app.use(cors());
+
+// const storage = multer.memoryStorage(); // Store file in memory for Firebase
+// const upload = multer({ storage });
 
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -27,6 +34,22 @@ router.get('/fetchBloodStock', async (req, res) => {
         res.status(200).json(response);
     } else {
         res.status(500).json({ message: "Failed to fetch blood stock"});
+    }
+});
+
+router.post('/addBank', async (req, res) => {
+    try {
+        const { bloodBankName, state, city, address, contactPerson, contactNumber, bankEmail, licenseNumber, licenseValidity, bloodBankCategory, password } = req.body;
+
+        const response = await addBankService(bloodBankName, state, city, address, contactPerson, contactNumber, bankEmail, licenseNumber, licenseValidity, bloodBankCategory, password);
+        
+        if (response) {
+            res.status(200).json({ message: "Uploaded", response });
+        } else {
+            res.status(500);
+        }
+    } catch (error) {
+        console.log(error);
     }
 });
 

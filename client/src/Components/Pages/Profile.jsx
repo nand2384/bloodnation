@@ -22,6 +22,7 @@ function Profile() {
     const verifyUser = async () => {
 
       const token = localStorage.getItem("token");
+      const bankToken = localStorage.getItem("bankToken");
       if (token) {
         try {
           const response = await fetch('http://localhost:3000/api/verify/user', {
@@ -44,9 +45,14 @@ function Profile() {
             setAge(data.age);
             setBloodGroup(data.bloodGroup);
             setEmail(data.email);
+          } else if (bankToken) {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            navigate('/bloodBankProfile');
           } else {
-            navigate('/login');
             localStorage.clear();
+            sessionStorage.clear();
+            navigate('/')
           }
 
         } catch (error) {

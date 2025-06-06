@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 function Login() {
-
     const [email, setEmail] = useState("");
     const [emailErr, setEmailErr] = useState("");
 
@@ -15,12 +14,19 @@ function Login() {
 
     useEffect(() => {
         const userStatus = sessionStorage.getItem("user");
-        const token = localStorage.getItem("token");
+        const bankStatus = sessionStorage.getItem("bank");
+        const userToken = localStorage.getItem("token");
+        const bankToken = localStorage.getItem("bankToken");
         if (userStatus) {
             navigate('/profile');
-        } else if (token && !userStatus) {
-            sessionStorage.setItem("user", true)
-            navigate('/home')
+        } else if (bankStatus) {
+            navigate('/bloodBankProfile');
+        } else if (userToken && !userStatus) {
+            sessionStorage.setItem("user", true);
+            navigate('/home');
+        } else if (bankToken && !bankToken) {
+            sessionStorage.setItem("bank", true);
+            navigate('/home');
         }
     }, [])
 
@@ -58,21 +64,22 @@ function Login() {
             });
             const data = await response.json();
             const token = data.token;
-            const Bool = data.Boolean;
 
-            if(token) {
+            if(token !== null || false) {
                 localStorage.setItem("token", token);
                 sessionStorage.setItem("user", true);
                 navigate('/profile');
-            } else if (Bool) {
-                alert('Invalid Credentials!');
+            } else if (token == null) {
+                alert(data.message);
+                setEmail('');
+                setPassword('');
+            } else if (token == false) {
+                alert(data.message);
                 setEmail('');
                 setPassword('');
             }
-
-
         } catch (error) {
-            console.log(error);            
+            console.log(error);
         }
     }
   return (

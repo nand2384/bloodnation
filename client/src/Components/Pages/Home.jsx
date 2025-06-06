@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Navbar from '../Common/Navbar/Navbar'
 import LoggedNavbar from '../Common/Navbar/LoggedNavbar'
 import { Link } from 'react-router-dom'
+import LoggedBankNavbar from '../Common/Navbar/LoggedBankNavbar';
 function Home() {   
   
   const [navComponent, setNavComponent] = useState(null);
@@ -10,6 +11,7 @@ function Home() {
     const verifyUser = async () => {
 
       const token = localStorage.getItem("token");
+      const bankToken = localStorage.getItem("bankToken");
       if (token) {
         setNavComponent(<LoggedNavbar />)
         try {
@@ -27,6 +29,8 @@ function Home() {
             setNavComponent(<LoggedNavbar />)
             sessionStorage.setItem("user", true);
           } else {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("user");
             setNavComponent(<Navbar />)
           }
 
@@ -34,7 +38,34 @@ function Home() {
           console.log("Fetching /api/verify/user Error: ", error);
           setNavComponent(<Navbar />)
         }
+      } else if (bankToken) {
+        setNavComponent(<LoggedBankNavbar />);
+        try {
+          const response = await fetch('http://localhost:3000/api/verify/bloodbank', {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${bankToken}`
+            }
+          });
+          
+          const data = await response.json();
+
+          if (data) {
+            setNavComponent(<LoggedBankNavbar />);
+            sessionStorage.setItem("bank", true);
+          } else {
+            localStorage.removeItem("bankToken");
+            sessionStorage.removeItem("bank");
+            setNavComponent(<Navbar />)
+          }
+        } catch (error) {
+          console.log("Fetching /api/verify/bloodbank Error: ", error);
+          setNavComponent(<Navbar />)
+        }
       } else {
+        localStorage.clear();
+        sessionStorage.clear();
         setNavComponent(<Navbar />)
       } 
     }

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { NavLink, Link, useNavigate } from 'react-router-dom'
-import { UserCircle, LogOut } from 'lucide-react' // or use emoji/icon as fallback
+import React, { useState, useRef, useEffect, use } from "react";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { UserCircle, LogOut } from "lucide-react"; // or use emoji/icon as fallback
 
 function LoggedNavbar() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ function LoggedNavbar() {
   const logout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    navigate('/');
+    navigate("/");
   };
 
   useEffect(() => {
@@ -24,17 +24,31 @@ function LoggedNavbar() {
   }, []);
 
   return (
-    <nav className='flex h-[11vh] bg-red-300 justify-between items-center text-xl shadow-sm border-b-4 border-green-400 sticky top-0 px-10 z-50 '>
-      <div className='text-xl font-medium'>
+    <nav className="flex h-[11vh] bg-red-300 justify-between items-center text-xl shadow-sm border-b-4 border-green-400 sticky top-0 px-10 z-50 ">
+      <div className="text-xl font-medium">
         <Link to="/">Blood Nation</Link>
       </div>
 
-      <div className='flex items-center gap-8 relative font-medium text-xl'>
-        <NavLink to="/" className={({ isActive }) => `p-1 ${isActive ? "underline" : "hover:underline"}`}>Home</NavLink>
-        <NavLink to="/bloodAvailability" className={({ isActive }) => `p-1 ${isActive ? "underline" : "hover:underline"}`}>Blood Availability</NavLink>
+      <div className="flex items-center gap-8 relative font-medium text-xl">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `p-1 ${isActive ? "underline" : "hover:underline"}`
+          }
+        >
+          Home
+        </NavLink>
+        <NavLink
+          to="/bloodAvailability"
+          className={({ isActive }) =>
+            `p-1 ${isActive ? "underline" : "hover:underline"}`
+          }
+        >
+          Blood Availability
+        </NavLink>
 
         <button
-          onClick={() => setProfileDivStatus(prev => !prev)}
+          onClick={() => setProfileDivStatus((prev) => !prev)}
           className="flex items-center gap-2 px-4 py-1 rounded-full hover:underline cursor-pointer transition duration-200"
         >
           <UserCircle className="w-6 h-6 text-black" />
@@ -45,7 +59,9 @@ function LoggedNavbar() {
         <div
           ref={dropdownRef}
           className={`absolute top-16 right-0 w-52 bg-white rounded-lg shadow-lg text-base z-50 transition-all duration-150 ease-out transform ${
-            profileDivStatus ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+            profileDivStatus
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-95 pointer-events-none"
           }`}
         >
           <div className="py-2">

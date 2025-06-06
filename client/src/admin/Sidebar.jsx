@@ -45,6 +45,16 @@ const Sidebar = () => {
           >
             Availability Data
           </NavLink>
+          <NavLink
+            to="/panel/addBank"
+            className={({ isActive }) =>
+              `${
+                isActive ? "bg-blue-800" : "bg-none"
+              } hover:bg-blue-800 p-2 rounded`
+            }
+          >
+            Add Blood Bank
+          </NavLink>
         </nav>
       </div>
     </>

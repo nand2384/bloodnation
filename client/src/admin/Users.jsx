@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
+
 function Users() {
   const [users, setUsers] = useState([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const status = sessionStorage.getItem("admin");
+
+    if (status == null) {
+      navigate("/admin");
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {

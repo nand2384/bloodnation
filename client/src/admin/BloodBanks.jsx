@@ -1,26 +1,41 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
 
 function BloodBanks() {
-    const [bloodStock, setBloodStock] = useState([]);
-    useEffect(() => {
-      const fetchBloodStock = async () => {
-        try {
-          const response = await fetch("http://localhost:3000/admin/fetchBloodStock", {
+  const [bloodStock, setBloodStock] = useState([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const status = sessionStorage.getItem("admin");
+
+    if (status == null) {
+      navigate("/admin");
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchBloodStock = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/admin/fetchBloodStock",
+          {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
-          });
-  
-          const result = await response.json();
-          setBloodStock(result);
-        } catch (error) {
-          console.log("Fetch Error: ", error);
-        }
-      };
-      fetchBloodStock();
-    }, []);
+          }
+        );
+
+        const result = await response.json();
+        setBloodStock(result);
+      } catch (error) {
+        console.log("Fetch Error: ", error);
+      }
+    };
+    fetchBloodStock();
+  }, []);
   return (
     <>
       <div className="flex h-screen">
