@@ -6,6 +6,8 @@ import LoggedBankNavbar from "../Common/Navbar/LoggedBankNavbar";
 function BloodBankProfile() {
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
+
   const [bloodBankName, setBloodBankName] = useState();
   const [bankId, setBankId] = useState();
   const [bankEmail, setBankEmail] = useState();
@@ -20,6 +22,7 @@ function BloodBankProfile() {
 
   useEffect(() => {
     const verifyUser = async () => {
+      setLoading(true);
       const token = localStorage.getItem("bankToken");
       if (token) {
         try {
@@ -38,7 +41,6 @@ function BloodBankProfile() {
           const data = responseJSON.response;
 
           if (data) {
-            console.log("Blood Bank verify data: ", data);
             setBloodBankName(data.bloodBankName);
             setBankId(data.bankId);
             setBankEmail(data.bankEmail);
@@ -60,6 +62,8 @@ function BloodBankProfile() {
           navigate("/home");
           localStorage.clear();
           sessionStorage.clear();
+        } finally {
+          setLoading(false);
         }
       } else {
         localStorage.clear();
@@ -74,6 +78,13 @@ function BloodBankProfile() {
   return (
     <>
       <LoggedBankNavbar />
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-red-200/30">
+          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+            <div className="w-10 h-10 border-4 border-t-transparent border-red-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
       <section className="min-h-[89vh] bg-red-50">
         {/* Dashboard Header */}
         <div className="flex justify-center items-center pt-8 pb-6 bg-white shadow-md">
@@ -85,7 +96,7 @@ function BloodBankProfile() {
         {/* Profile Details Section */}
         <div className="flex justify-center items-start gap-10 px-6 py-10 flex-wrap">
           {/* Your Details Card */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg max-w-lg w-full">
+          <div className="bg-white p-6 rounded-2xl shadow-lg max-w-3xl w-full">
             <h2 className="text-xl font-semibold text-red-600 mb-4 text-center border-b-2 border-red-400 pb-2">
               Bank Details
             </h2>
@@ -138,11 +149,6 @@ function BloodBankProfile() {
           </div>
 
           {/* Additional Details Card */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg max-w-lg w-full">
-            <h2 className="text-xl font-semibold text-red-600 mb-4 text-center border-b-2 border-red-400 pb-2">
-              Additional Details
-            </h2>
-          </div>
         </div>
       </section>
     </>

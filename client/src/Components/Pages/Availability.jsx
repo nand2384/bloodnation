@@ -6,6 +6,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 
 function Availability() {
   const [navComponent, setNavComponent] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const verifyUser = async () => {
@@ -872,21 +873,17 @@ function Availability() {
   const [bloodGroup, setBloodGroup] = useState("");
   const [bloodType, setBloodType] = useState("");
 
-  const [tableData, setTableData] = useState([]);
-
-  const [sectionBool, setSectionBool] = useState(false);
-
   const [stockData, setStockData] = useState([]);
+
+  const [tableInfo, setTableInfo] = useState("Search for Blood Stock Availability.");
 
   useEffect(() => {
     setCitiesList(stateCityMap[state] || []);
   }, [state]);
 
-  useEffect(() => {
-    console.log(city);
-  }, [city]);
-
   const handleStockSearch = async () => {
+    setLoading(true);
+
     try {
       const q = query(
         collection(db, "bloodstock"),
@@ -900,23 +897,35 @@ function Availability() {
         id: doc.id,
         ...doc.data(),
       }));
-      console.log(docs);
-      setStockData(docs);
+      if(docs.length === 0) {
+        setTableInfo("No Blood Stock Available.")
+        setStockData([]);
+      } else {
+        setStockData(docs);
+      }
     } catch (error) {
       console.log("Error fetching data: ", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
       {navComponent}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-red-200/30">
+          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+            <div className="w-10 h-10 border-4 border-t-transparent border-red-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
       <section className="h-[89vh] flex justify-center bg-red-50">
         <div className=" flex justify-start flex-col mt-8 w-[90vw]">
           <h2 className="font-sans text-3xl text-left font-semibold">
             Blood Stock Availability
           </h2>
           <hr className="w-[90vw] mt-6" />
-
           <div className="w-[90vw] mt-10 flex items-center pl-2 h-12 rounded-t-md bg-green-700 text-white font-semibold shadow-md shadow-black/20">
             Search Blood Stock
           </div>
@@ -1058,22 +1067,33 @@ function Availability() {
                 </tr>
               </thead>
               <tbody>
-                {stockData.map((stock, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2 text-center border border-gray-300">
-                      {stock.bloodBankName}
-                    </td>
-                    <td className="px-4 py-2 text-center border border-gray-300">
-                      {stock.bloodGroup}
-                    </td>
-                    <td className="px-4 py-2 text-center border border-gray-300">
-                      {stock.bloodType}
-                    </td>
-                    <td className="px-4 py-2 text-center border border-gray-300">
-                      {stock.quantity}
+                {stockData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="text-center py-4 font-semibold text-red-500"
+                    >
+                      {tableInfo}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  stockData.map((stock, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 text-center border border-gray-300">
+                        {stock.bloodBankName}
+                      </td>
+                      <td className="px-4 py-2 text-center border border-gray-300">
+                        {stock.bloodGroup}
+                      </td>
+                      <td className="px-4 py-2 text-center border border-gray-300">
+                        {stock.bloodType}
+                      </td>
+                      <td className="px-4 py-2 text-center border border-gray-300">
+                        {stock.quantity}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -5,9 +5,14 @@ function BankAvailability() {
   const [bloodGroup, setBloodGroup] = useState("");
   const [bloodType, setBloodType] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [editId, setEditId] = useState(null);
+  const [newBloodGroup, setNewBloodGroup] = useState("");
+  const [newBloodType, setNewBloodType] = useState("");
+  const [newQuantity, setNewQuantity] = useState("");
+  const [editId, setEditId] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [bloodStockList, setBloodStockList] = useState([]);
+
+  const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
     setBloodGroup("");
@@ -18,22 +23,27 @@ function BankAvailability() {
   };
 
   const fetchStockList = async () => {
+    setLoading(true);
     try {
       const bankToken = localStorage.getItem("bankToken");
-      const response = await fetch("http://localhost:3000/api/fetch/bloodstock", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${bankToken}`,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/fetch/bloodstock",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bankToken}`,
+          },
+        }
+      );
 
       const object = await response.json();
       const data = object.response;
       setBloodStockList(data);
-      console.log("BloodStockList Data", bloodStockList);
     } catch (error) {
       console.log("Error fetching data: ", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,6 +53,7 @@ function BankAvailability() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const bankToken = localStorage.getItem("bankToken");
 
     try {
@@ -55,36 +66,95 @@ function BankAvailability() {
         body: JSON.stringify({ bloodGroup, bloodType, quantity }),
       });
 
-      const data = await response.json();
-      alert(data.message);
       resetForm();
-      fetchStockList(); // refresh list after adding
+      fetchStockList();
     } catch (error) {
       console.log("Error submitting the bank data: ", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = (stock) => {
-    setBloodGroup(stock.bloodGroup);
-    setBloodType(stock.bloodType);
-    setQuantity(stock.quantity);
+    setNewBloodGroup(stock.bloodGroup);
+    setNewBloodType(stock.bloodType);
+    setNewQuantity(stock.quantity);
     setEditId(stock.id);
     setShowModal(true);
   };
 
-  const handleUpdate = () => {
-    alert("Sike! This feature is not available.");
-  }
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this record?")) {
-      alert("Sike! This feature is not available.");
+    const bankToken = localStorage.getItem("bankToken");
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/update/bloodstock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            editId,
+            newBloodGroup,
+            newBloodType,
+            newQuantity,
+          }),
+        }
+      );
+
+      const responseData = await response.json();
+      const message = responseData.message;
+
+      resetForm();
+      fetchStockList();
+    } catch (error) {
+      console.log("Error fetching /update/bloodstock: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (stockId) => {
+    if (window.confirm("Do you want to delete this bloodstock?")) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/delete/bloodstock",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ stockId }),
+          }
+        );
+
+        const responseData = await response.json();
+        const message = responseData.message;
+
+        resetForm();
+        fetchStockList();
+      } catch (error) {
+        console.log("Error fetching /delete/bloodstock: ", error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <>
       <LoggedBankNavbar />
+      {loading && (
+        <div className="fixed inset-0 z-51 flex items-center justify-center backdrop-blur-md bg-red-200/30">
+          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+            <div className="w-10 h-10 border-4 border-t-transparent border-red-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
       <section className="min-h-[89vh] bg-gray-50 px-6 py-10">
         <div className="max-w-4xl mx-auto">
           {/* Form Section */}
@@ -99,7 +169,7 @@ function BankAvailability() {
                     Blood Group
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md hover:cursor-pointer"
                     value={bloodGroup}
                     onChange={(e) => setBloodGroup(e.target.value)}
                   >
@@ -122,7 +192,7 @@ function BankAvailability() {
                     Blood Type
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md hover:cursor-pointer"
                     value={bloodType}
                     onChange={(e) => setBloodType(e.target.value)}
                   >
@@ -130,17 +200,33 @@ function BankAvailability() {
                       Select Blood Type
                     </option>
                     <option value="Whole Blood">Whole Blood</option>
-                    <option value="Single Donor Platelet">Single Donor Platelet</option>
-                    <option value="Single Donor Plasma">Single Donor Plasma</option>
-                    <option value="Sagm Packed Red Blood Cells">Sagm Packed Red Blood Cells</option>
-                    <option value="Random Donor Platelets">Random Donor Platelets</option>
-                    <option value="Platelet Rich Plasma">Platelet Rich Plasma</option>
-                    <option value="Platelet Concentrate">Platelet Concentrate</option>
+                    <option value="Single Donor Platelet">
+                      Single Donor Platelet
+                    </option>
+                    <option value="Single Donor Plasma">
+                      Single Donor Plasma
+                    </option>
+                    <option value="Sagm Packed Red Blood Cells">
+                      Sagm Packed Red Blood Cells
+                    </option>
+                    <option value="Random Donor Platelets">
+                      Random Donor Platelets
+                    </option>
+                    <option value="Platelet Rich Plasma">
+                      Platelet Rich Plasma
+                    </option>
+                    <option value="Platelet Concentrate">
+                      Platelet Concentrate
+                    </option>
                     <option value="Plasma">Plasma</option>
-                    <option value="Packed Red Blood Cells">Packed Red Blood Cells</option>
+                    <option value="Packed Red Blood Cells">
+                      Packed Red Blood Cells
+                    </option>
                     <option value="Leukoreduced RBC">Leukoreduced RBC</option>
                     <option value="Irradiated RBC">Irradiated RBC</option>
-                    <option value="Fresh Frozen Plasma">Fresh Frozen Plasma</option>
+                    <option value="Fresh Frozen Plasma">
+                      Fresh Frozen Plasma
+                    </option>
                     <option value="Cryoprecipitate">Cryoprecipitate</option>
                     <option value="Cryo Poor Plasma">Cryo Poor Plasma</option>
                   </select>
@@ -163,7 +249,7 @@ function BankAvailability() {
               <div className="text-center">
                 <button
                   type="submit"
-                  className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-md transition"
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-md transition hover:cursor-pointer"
                 >
                   {editId ? "Update" : "Add"}
                 </button>
@@ -180,7 +266,9 @@ function BankAvailability() {
               <table className="w-full border-collapse text-sm shadow-sm">
                 <thead className="bg-red-100 text-gray-800">
                   <tr>
-                    <th className="border px-4 py-3 text-center">Blood Group</th>
+                    <th className="border px-4 py-3 text-center">
+                      Blood Group
+                    </th>
                     <th className="border px-4 py-3 text-center">Blood Type</th>
                     <th className="border px-4 py-3 text-center">Quantity</th>
                     <th className="border px-4 py-3 text-center">Actions</th>
@@ -189,26 +277,35 @@ function BankAvailability() {
                 <tbody>
                   {bloodStockList.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="text-center py-4 text-gray-500">
+                      <td
+                        colSpan="4"
+                        className="text-center py-4 text-gray-500"
+                      >
                         No blood stock available.
                       </td>
                     </tr>
                   ) : (
                     bloodStockList.map((bank) => (
                       <tr key={bank.id} className="hover:bg-red-50 transition">
-                        <td className="border px-4 py-2 text-center">{bank.bloodGroup}</td>
-                        <td className="border px-4 py-2 text-center">{bank.bloodType}</td>
-                        <td className="border px-4 py-2 text-center">{bank.quantity}</td>
+                        <td className="border px-4 py-2 text-center">
+                          {bank.bloodGroup}
+                        </td>
+                        <td className="border px-4 py-2 text-center">
+                          {bank.bloodType}
+                        </td>
+                        <td className="border px-4 py-2 text-center">
+                          {bank.quantity}
+                        </td>
                         <td className="border px-4 py-2 text-center">
                           <button
                             onClick={() => handleEdit(bank)}
-                            className="text-blue-600 hover:underline mr-4"
+                            className="text-blue-600 hover:underline mr-4 hover:cursor-pointer"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(bank.id)}
-                            className="text-red-600 hover:underline"
+                            className="text-red-600 hover:underline hover:cursor-pointer"
                           >
                             Delete
                           </button>
@@ -230,12 +327,12 @@ function BankAvailability() {
             <h3 className="text-lg font-semibold text-red-600 mb-4 text-center">
               Edit Blood Stock
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleUpdate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <select
-                  className="p-2 border border-gray-300 rounded-md"
-                  value={bloodGroup}
-                  onChange={(e) => setBloodGroup(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md hover:cursor-pointer"
+                  value={newBloodGroup}
+                  onChange={(e) => setNewBloodGroup(e.target.value)}
                 >
                   <option value="" disabled>
                     Select Blood Group
@@ -251,25 +348,41 @@ function BankAvailability() {
                 </select>
 
                 <select
-                  className="p-2 border border-gray-300 rounded-md"
-                  value={bloodType}
-                  onChange={(e) => setBloodType(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md hover:cursor-pointer"
+                  value={newBloodType}
+                  onChange={(e) => setNewBloodType(e.target.value)}
                 >
                   <option value="" disabled>
                     Select Blood Type
                   </option>
                   <option value="Whole Blood">Whole Blood</option>
-                  <option value="Single Donor Platelet">Single Donor Platelet</option>
-                  <option value="Single Donor Plasma">Single Donor Plasma</option>
-                  <option value="Sagm Packed Red Blood Cells">Sagm Packed Red Blood Cells</option>
-                  <option value="Random Donor Platelets">Random Donor Platelets</option>
-                  <option value="Platelet Rich Plasma">Platelet Rich Plasma</option>
-                  <option value="Platelet Concentrate">Platelet Concentrate</option>
+                  <option value="Single Donor Platelet">
+                    Single Donor Platelet
+                  </option>
+                  <option value="Single Donor Plasma">
+                    Single Donor Plasma
+                  </option>
+                  <option value="Sagm Packed Red Blood Cells">
+                    Sagm Packed Red Blood Cells
+                  </option>
+                  <option value="Random Donor Platelets">
+                    Random Donor Platelets
+                  </option>
+                  <option value="Platelet Rich Plasma">
+                    Platelet Rich Plasma
+                  </option>
+                  <option value="Platelet Concentrate">
+                    Platelet Concentrate
+                  </option>
                   <option value="Plasma">Plasma</option>
-                  <option value="Packed Red Blood Cells">Packed Red Blood Cells</option>
+                  <option value="Packed Red Blood Cells">
+                    Packed Red Blood Cells
+                  </option>
                   <option value="Leukoreduced RBC">Leukoreduced RBC</option>
                   <option value="Irradiated RBC">Irradiated RBC</option>
-                  <option value="Fresh Frozen Plasma">Fresh Frozen Plasma</option>
+                  <option value="Fresh Frozen Plasma">
+                    Fresh Frozen Plasma
+                  </option>
                   <option value="Cryoprecipitate">Cryoprecipitate</option>
                   <option value="Cryo Poor Plasma">Cryo Poor Plasma</option>
                 </select>
@@ -277,8 +390,8 @@ function BankAvailability() {
                 <input
                   type="number"
                   className="p-2 border border-gray-300 rounded-md"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  value={newQuantity}
+                  onChange={(e) => setNewQuantity(e.target.value)}
                   placeholder="Quantity"
                 />
               </div>
@@ -287,13 +400,13 @@ function BankAvailability() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
+                  className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 hover:cursor-pointer"
                 >
                   Update
                 </button>

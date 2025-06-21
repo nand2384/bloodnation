@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+* {
+    user-select: none;
+}
+
 .scrollbar-hide {
     -ms-overflow-style: none;
     /* IE and Edge */

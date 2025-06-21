@@ -1,14 +1,6 @@
 const express = require('express');
-// const multer = require('multer');
-// const cors = require('cors');
-const { adminLogin, fetchUsersService, fetchBloodStockService, addBankService } = require('../Models/adminModel');
+const { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService } = require('../Models/adminModel');
 const router = express.Router();
-
-// const app = express();
-// app.use(cors());
-
-// const storage = multer.memoryStorage(); // Store file in memory for Firebase
-// const upload = multer({ storage });
 
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -27,13 +19,28 @@ router.get('/fetchUsers', async (req, res) => {
     }
 });
 
-router.get('/fetchBloodStock', async (req, res) => {
-    const response = await fetchBloodStockService();
+router.post('/fetchBloodStock', async (req, res) => {
+    const state = req.body.state;
+    const city = req.body.city;
+
+    const response = await fetchBloodStockService(state, city);
+
+    if(response == null) {
+        res.status(404).json({ message: "No Blood Stock Data in this city!", response: null});
+    } else {
+        res.status(200).json(response);
+    }
+});
+
+router.post('/fetchBloodBank', async (req, res) => {
+    const state = req.body.state;
+    const city = req.body.city;
+    const response = await fetchBloodBankService(state, city);
 
     if(response) {
         res.status(200).json(response);
     } else {
-        res.status(500).json({ message: "Failed to fetch blood stock"});
+        res.status(500).json({ message: "Failed to fetch blood banks!"});
     }
 });
 

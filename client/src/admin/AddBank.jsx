@@ -58,8 +58,8 @@ function AddBank() {
       const bankId = data.response;
 
       if (bankId) {
-        navigator.clipboard.writeText(bankId);
         navigator.clipboard.writeText(password);
+        navigator.clipboard.writeText(bankId);
         alert(`Bank Id is ${bankId} and password - ${password}, both are copied to clipboard, just paste it!`);
         setBloodBankName('');
         setState('');

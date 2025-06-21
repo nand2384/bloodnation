@@ -41,16 +41,31 @@ const fetchUsersService = async () => {
   return users;
 };
 
-const fetchBloodStockService = async () => {
-  const snapshot = await db.collection("bloodstock").get();
+const fetchBloodStockService = async (state, city) => {
+  const snapshot = await db.collection("bloodstock").where("state", "==", state).where("city", "==", city).get();
   const bloodStock = [];
 
   snapshot.forEach((doc) => {
     bloodStock.push({ id: doc.id, ...doc.data() });
   });
 
-  return bloodStock;
+  if(bloodStock.empty) {
+    return null;
+  } else {
+    return bloodStock;
+  }
 };
+
+const fetchBloodBankService = async (state, city) => {
+  const snapshot = await db.collection("bloodbanks").where("state", "==", state).where("city", "==", city).get();
+  const bloodbanks = [];
+
+  snapshot.forEach((doc) => {
+    bloodbanks.push({ id: doc.id, ...doc.data() });
+  });
+
+  return bloodbanks;
+}
 
 const addBankService = async (
   bloodBankName,
@@ -115,4 +130,4 @@ const addBankService = async (
 };
 
 
-module.exports = { adminLogin, fetchUsersService, fetchBloodStockService, addBankService };
+module.exports = { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService };

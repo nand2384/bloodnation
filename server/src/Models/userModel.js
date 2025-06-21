@@ -89,7 +89,6 @@ const userRegister = async (
                 SECRET_KEY,
                 { expiresIn: "1h" }
               );
-              console.log("Signed reg token: ", token);
               return token;
             } catch (error) {
               console.log("Error generating token: ", error);
@@ -103,7 +102,7 @@ const userRegister = async (
       console.log("user Model Data sending:", error);
     }
   } else {
-    return "There is a user with this email address, please login!";
+    return true;
   }
 };
 
@@ -159,7 +158,7 @@ const changeUserPassword = async (email, oldPassword, newPassword) => {
         try {
           newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
         } catch (error) {
-          console.log(error);
+          console.log("Error hashing passwords: ", error);
         }
       } else {
         console.log("The Password didn't match!");
@@ -167,9 +166,7 @@ const changeUserPassword = async (email, oldPassword, newPassword) => {
 
       try {
         const updateDocRef = db.collection("users").doc(docRef.id);
-        console.log("Breakpoint, docref.id: ", docRef.id);
-        console.log("Breakpoint 2 newHashedPassword:", newHashedPassword);
-
+        
         const updatingDocResult = await updateDocRef.update({
           password: newHashedPassword,
         });
@@ -212,10 +209,9 @@ const bloodBankLogin = async (bankId, password) => {
           SECRET_KEY,
           { expiresIn: "1h" }
         );
-        console.log("Token: ", token);
         return token;
       } else {
-        return "Please enter the correct password!";
+        return false;
       }
     }
   } catch (error) {
@@ -271,6 +267,34 @@ const fetchBloodStock = async (token) => {
   }
 };
 
+const updateBloodStock = async (stockId, newBloodGroup, newBloodType, newQuantity) => {
+  const docRef = db.collection("bloodstock").doc(stockId);
+
+  const snapshot = await docRef.update({
+    bloodGroup: newBloodGroup,
+    bloodType: newBloodType,
+    quantity: newQuantity
+  });
+
+  if(snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+};
+
+const deleteBloodStock = async (stockId) => {
+  const docRef = db.collection("bloodstock").doc(stockId);
+
+  const snapshot = await docRef.delete();
+
+  if(snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+}
+
 module.exports = {
   loginUser,
   userRegister,
@@ -280,4 +304,6 @@ module.exports = {
   verifyBank,
   addBloodStock,
   fetchBloodStock,
+  updateBloodStock,
+  deleteBloodStock
 };
