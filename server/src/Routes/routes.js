@@ -6,10 +6,11 @@ const {
   verifyBank,
   changeUserPassword,
   bloodBankLogin,
+  changeBankPassword,
   addBloodStock,
   fetchBloodStock,
   updateBloodStock,
-  deleteBloodStock
+  deleteBloodStock,
 } = require("../Models/userModel.js");
 
 const router = express.Router();
@@ -53,19 +54,22 @@ router.post("/user/register", async (req, res) => {
 
     if (token == null) {
       const token = await userRegister(
-      firstName,
-      lastName,
-      fatherName,
-      age,
-      gender,
-      bloodGroup,
-      email,
-      password
-    );
+        firstName,
+        lastName,
+        fatherName,
+        age,
+        gender,
+        bloodGroup,
+        email,
+        password
+      );
     }
 
     if (token == true) {
-      res.json({ message: "There is a user registered with this email!", token: true });
+      res.json({
+        message: "There is a user registered with this email!",
+        token: true,
+      });
     } else if (token != true || token != null) {
       res.status(200).json({ message: "User Registered!", token });
     }
@@ -129,10 +133,14 @@ router.post("/bloodbank/login", async (req, res) => {
   const token = await bloodBankLogin(bankId, password);
 
   if (token == null) {
-    res.status(404).json({ message: "There is no blood bank with this ID!", token: null });
-  } else if(token == false) {
-    res.status(401).json({ message: "Please enter the correct password!", token: false });
-  } else if(token != null || token != false) {
+    res
+      .status(404)
+      .json({ message: "There is no blood bank with this ID!", token: null });
+  } else if (token == false) {
+    res
+      .status(401)
+      .json({ message: "Please enter the correct password!", token: false });
+  } else if (token != null || token != false) {
     res.status(200).json({ message: "Logged Successfully!", token });
   }
 });
@@ -177,26 +185,35 @@ router.post("/update/bloodstock", async (req, res) => {
   const newBloodType = req.body.newBloodType;
   const newQuantity = req.body.newQuantity;
 
-  const result = await updateBloodStock(stockId, newBloodGroup, newBloodType, newQuantity);
+  const result = await updateBloodStock(
+    stockId,
+    newBloodGroup,
+    newBloodType,
+    newQuantity
+  );
 
-  if(result == true) {
-    res.status(200).json({ message: "Data Updated!"});
+  if (result == true) {
+    res.status(200).json({ message: "Data Updated!" });
   } else {
-    res.status(401).json({ message: "There was some error, please try again!"});
+    res
+      .status(401)
+      .json({ message: "There was some error, please try again!" });
   }
 });
 
 router.post("/delete/bloodstock", async (req, res) => {
-  const stockId = req.body.stockId;  
+  const stockId = req.body.stockId;
 
   const response = await deleteBloodStock(stockId);
 
-  if(response == true) {
-    res.status(200).json({ message: "Data was deleted!"});
+  if (response == true) {
+    res.status(200).json({ message: "Data was deleted!" });
   } else {
-    res.status(401).json({ message: "There was some error, please try again!"});
+    res
+      .status(401)
+      .json({ message: "There was some error, please try again!" });
   }
-})
+});
 
 router.get("/fetch/bloodstock", async (req, res) => {
   const authHeader = req.headers.authorization;
@@ -211,6 +228,19 @@ router.get("/fetch/bloodstock", async (req, res) => {
     } else {
       res.status(404).json({ message: "No Data Found!" });
     }
+  }
+});
+
+router.post("/bloodbank/changePassword", async (req, res) => {
+  const { bankId, oldPassword, newPassword } = req.body;
+  const result = await changeBankPassword(bankId, oldPassword, newPassword);
+
+  if (result == 200) {
+    res.status(200).json({ message: "Your Password has been Changed!" });
+  } else {
+    res.status(401).json({
+      message: "Invalid Password Change, please enter the correct values!",
+    });
   }
 });
 

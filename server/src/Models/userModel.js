@@ -185,6 +185,51 @@ const changeUserPassword = async (email, oldPassword, newPassword) => {
   }
 };
 
+const changeBankPassword = async (bankId, oldPassword, newPassword) => {
+  try {
+    const bankRef = db.collection("bloodbanks");
+    const snapshot = await bankRef.where("bankId", "==", bankId).get();
+
+    const docRef = snapshot.docs[0];
+    const data = docRef.data();
+
+    const storedHashedPassword = data.bloodBankPassword;
+    let newHashedPassword;
+    let comparedResult;
+    try {
+      comparedResult = await bcrypt.compare(oldPassword, storedHashedPassword);
+
+      if (comparedResult) {
+        try {
+          newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        } catch (error) {
+          console.log("Error hashing passwords: ", error);
+        }
+      } else {
+        console.log("The Password didn't match!");
+      }
+
+      try {
+        const updateDocRef = db.collection("bloodbanks").doc(docRef.id);
+        
+        const updatingDocResult = await updateDocRef.update({
+          bloodBankPassword: newHashedPassword,
+        });
+
+        if (updateDocRef) {
+          return 200;
+        }
+      } catch (error) {
+        console.log("Updating Doc Error: ", error);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } catch (error) {
+    console.log("userModel changePassword Error: ", error);
+  }
+};
+
 const bloodBankLogin = async (bankId, password) => {
   try {
     const bankRef = db.collection("bloodbanks");
@@ -301,6 +346,7 @@ module.exports = {
   verifyUser,
   changeUserPassword,
   bloodBankLogin,
+  changeBankPassword,
   verifyBank,
   addBloodStock,
   fetchBloodStock,

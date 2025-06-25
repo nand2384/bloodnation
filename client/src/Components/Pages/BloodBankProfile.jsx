@@ -20,6 +20,12 @@ function BloodBankProfile() {
   const [state, setState] = useState();
   const [city, setCity] = useState();
 
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [errorStatus, setErrorStatus] = useState(false);
+
   useEffect(() => {
     const verifyUser = async () => {
       setLoading(true);
@@ -74,6 +80,55 @@ function BloodBankProfile() {
 
     verifyUser();
   }, []);
+
+  useEffect(() => {
+    if(oldPassword && newPassword && confirmNewPassword == "") {
+      setErrorStatus(true);
+    } else if (newPassword !== confirmNewPassword) {
+      setPasswordError("New Password didn't match!");
+      setErrorStatus(true);
+    } else {
+      setPasswordError("");
+      setErrorStatus(false);
+    }
+  }, [oldPassword, newPassword, confirmNewPassword]);
+
+  const handleChangePassword = async () => {
+    if (errorStatus === false) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/bloodbank/changePassword",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              bankId,
+              oldPassword,
+              newPassword,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        const message = data.message;
+
+        alert(message);
+
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+      } catch (error) {
+        console.log("Fetch Error: ", error);
+      } finally {
+        setLoading(false);
+      }
+    } else if (errorStatus == true) {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -149,6 +204,43 @@ function BloodBankProfile() {
           </div>
 
           {/* Additional Details Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg max-w-lg w-full">
+            <h2 className="text-xl font-semibold text-red-600 mb-4 text-center border-b-2 border-red-400 pb-2">
+              Change Password
+            </h2>
+            <div className="flex flex-col items-center gap-3 text-gray-700 text-base">
+              <input
+                type="text"
+                value={oldPassword}
+                placeholder="Old Password"
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="border p-2 rounded-md w-full"
+              />
+              <input
+                type="text"
+                value={newPassword}
+                placeholder="New Password"
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="border p-2 rounded-md w-full"
+              />
+              <input
+                type="text"
+                value={confirmNewPassword}
+                placeholder="Confirm New Password"
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                className="border p-2 rounded-md w-full"
+              />
+              {passwordError && (
+                <p className=" text-red-500 text-xs">{passwordError}</p>
+              )}
+              <button
+                onClick={handleChangePassword}
+                className="p-2 w-1/4 bg-red-300 rounded-2xl shadow-sm shadow-black/20 hover:bg-red-400 hover:shadow-md cursor-pointer"
+              >
+                Change
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </>
