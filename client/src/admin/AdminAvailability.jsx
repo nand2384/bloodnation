@@ -14,6 +14,54 @@ function AdminAvailability() {
 
   const navigate = useNavigate();
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({});
+
+  const [errorStatus, setErrorStatus] = useState(false);
+
+  const handleEdit = (bank) => {
+    setEditData(bank);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+
+    if (errorStatus == false) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/admin/update/bloodstock",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "Application/json",
+            },
+            body: JSON.stringify(editData),
+          }
+        );
+
+        if (response.status == 200) {
+          setIsEditModalOpen(false);
+          fetchBloodStock();
+        } else if (response.status == 401) {
+          const responseData = await response.json();
+          const errorMessage = responseData.message;
+          alert(message);
+        }
+      } catch (error) {
+        console.log("Error fetching /update/bloodstock: ", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const stateCityMap = {
     "Andhra Pradesh": [
       "Alluri Sitharama Raju",
@@ -844,6 +892,18 @@ function AdminAvailability() {
   }, [state]);
 
   useEffect(() => {
+    if (
+      editData.bloodGroup == "" ||
+      editData.bloodType == "" ||
+      editData.quantity == ""
+    ) {
+      setErrorStatus(true);
+    } else {
+      setErrorStatus(false);
+    }
+  }, [editData]);
+
+  useEffect(() => {
     const status = sessionStorage.getItem("admin");
     if (status == null) {
       navigate("/admin");
@@ -881,34 +941,66 @@ function AdminAvailability() {
     }
   };
 
-  return (
-  <>
-    {loading && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-blue-200">
-        <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
-          <div className="w-10 h-10 border-4 border-t-transparent border-blue-400 rounded-full animate-spin"></div>
-        </div>
-      </div>
-    )}
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 bg-white overflow-auto">
-        <div className="flex items-center justify-between p-4 border-b shadow">
-          <h1 className="text-2xl font-semibold text-blue-900">
-            Blood Availability Details
-          </h1>
-        </div>
+  const handleDelete = async (docId) => {
+    if (window.confirm("Do you want to delete this blood stock?")) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/admin/delete/bloodstock",
+          {
+            method: "post",
+            headers: {
+              "Content-Type": "Application/json",
+            },
+            body: JSON.stringify({ docId }),
+          }
+        );
 
-        {/* Search Section */}
-        <div className="px-6 pt-6">
-          <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
-            <h2 className="font-semibold text-blue-800 mb-4">Search</h2>
-            <div className="flex flex-wrap gap-4">
-              <select
-                name="state"
-                className="border p-2 rounded-md shadow w-52"
-                onChange={(e) => setState(e.target.value)}
-              >
+        const responseStatus = response.status;
+        if (responseStatus == 200) {
+          return;
+        } else if (responseStatus == 401) {
+          const responseData = await response.json();
+          alert(responseData.message);
+        }
+      } catch (error) {
+        console.log("Error fetching /delete/bloodstock: ", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+        fetchBloodStock();
+      }
+    }
+  };
+
+  return (
+    <>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-blue-200">
+          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+            <div className="w-10 h-10 border-4 border-t-transparent border-blue-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 bg-white overflow-auto">
+          <div className="flex items-center justify-between p-4 border-b shadow">
+            <h1 className="text-2xl font-semibold text-blue-900">
+              Blood Availability Details
+            </h1>
+          </div>
+
+          {/* Search Section */}
+          <div className="px-6 pt-6">
+            <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
+              <h2 className="font-semibold text-blue-800 mb-4">Search</h2>
+              <div className="flex flex-wrap gap-4">
+                <select
+                  name="state"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                  onChange={(e) => setState(e.target.value)}
+                >
                   <option value="" selected disabled>
                     Select State
                   </option>
@@ -946,131 +1038,271 @@ function AdminAvailability() {
                   <option value="Uttar Pradesh">Uttar Pradesh</option>
                   <option value="Uttarakhand">Uttarakhand</option>
                   <option value="West Bengal">West Bengal</option>
-              </select>
-              <select
-                name="city"
-                className="border p-2 rounded-md shadow w-52"
-                onChange={(e) => setCity(e.target.value)}
-              >
-                <option value="" selected disabled>
-                  Select City
-                </option>
-                {citiesList.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
+                </select>
+                <select
+                  name="city"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                  onChange={(e) => setCity(e.target.value)}
+                >
+                  <option value="" selected disabled>
+                    Select City
                   </option>
-                ))}
-              </select>
-              <button
-                className="bg-blue-900 text-white px-4 py-2 rounded-md shadow hover:bg-blue-800 cursor-pointer"
-                onClick={fetchBloodStock}
-              >
-                Search
-              </button>
+                  {citiesList.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="bg-blue-900 text-white px-4 py-2 rounded-md shadow hover:bg-blue-800 cursor-pointer"
+                  onClick={fetchBloodStock}
+                >
+                  Search
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Filter Section */}
-        <div className="px-6">
-          <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
-            <h2 className="font-semibold text-blue-800 mb-4">Filter</h2>
-            <div className="flex flex-wrap gap-4">
-              <select
-                value={filterName}
-                onChange={(e) => setFilterName(e.target.value)}
-                className="border p-2 rounded-md shadow w-52"
-              >
-                <option value="">All Bank Names</option>
-                {[...new Set(bloodStock.map((b) => b.bloodBankName))].map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={filterGroup}
-                onChange={(e) => setFilterGroup(e.target.value)}
-                className="border p-2 rounded-md shadow w-52"
-              >
-                <option value="">All Blood Groups</option>
-                {[...new Set(bloodStock.map((b) => b.bloodGroup))].map((group) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="border p-2 rounded-md shadow w-52"
-              >
-                <option value="">All Blood Types</option>
-                {[...new Set(bloodStock.map((b) => b.bloodType))].map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Table Section */}
-        <div className="p-6 text-gray-800">
-          <div className="overflow-x-auto">
-            <div className="overflow-y-auto">
-              <table className="min-w-full table-auto border-collapse border border-gray-300">
-                <thead className="bg-blue-900 text-white sticky top-0 z-10">
-                  <tr>
-                    <th className="px-4 py-2 border">Blood Bank Name</th>
-                    <th className="px-4 py-2 border">State</th>
-                    <th className="px-4 py-2 border">City</th>
-                    <th className="px-4 py-2 border">Blood Group</th>
-                    <th className="px-4 py-2 border">Blood Type</th>
-                    <th className="px-4 py-2 border">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bloodStock.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 font-semibold text-red-500"
-                      >
-                        {tableInfo}
-                      </td>
-                    </tr>
-                  ) : (
-                    bloodStock
-                      .filter(
-                        (bank) =>
-                          (!filterName || bank.bloodBankName === filterName) &&
-                          (!filterGroup || bank.bloodGroup === filterGroup) &&
-                          (!filterType || bank.bloodType === filterType)
-                      )
-                      .map((bank, index) => (
-                        <tr key={bank.id || index} className="border-t">
-                          <td className="px-4 py-2 border">{bank.bloodBankName}</td>
-                          <td className="px-4 py-2 border">{bank.state}</td>
-                          <td className="px-4 py-2 border">{bank.city}</td>
-                          <td className="px-4 py-2 border">{bank.bloodGroup}</td>
-                          <td className="px-4 py-2 border">{bank.bloodType}</td>
-                          <td className="px-4 py-2 border">{bank.quantity}</td>
-                        </tr>
-                      ))
+          {/* Filter Section */}
+          <div className="px-6">
+            <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
+              <h2 className="font-semibold text-blue-800 mb-4">Filter</h2>
+              <div className="flex flex-wrap gap-4">
+                <select
+                  value={filterName}
+                  onChange={(e) => setFilterName(e.target.value)}
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                >
+                  <option value="">All Bank Names</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodBankName))].map(
+                    (name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    )
                   )}
-                </tbody>
-              </table>
+                </select>
+
+                <select
+                  value={filterGroup}
+                  onChange={(e) => setFilterGroup(e.target.value)}
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                >
+                  <option value="">All Blood Groups</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodGroup))].map(
+                    (group) => (
+                      <option key={group} value={group}>
+                        {group}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                >
+                  <option value="">All Blood Types</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodType))].map(
+                    (type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Table Section */}
+          <div className="p-6 text-gray-800">
+            <div className="overflow-x-auto">
+              <div className="overflow-y-auto">
+                <table className="min-w-full table-auto border-collapse border border-gray-300">
+                  <thead className="bg-blue-900 text-white sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-2 border">Blood Bank Name</th>
+                      <th className="px-4 py-2 border">Blood Group</th>
+                      <th className="px-4 py-2 border">Blood Type</th>
+                      <th className="px-4 py-2 border">Quantity</th>
+                      <th className="px-4 py-2 border">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bloodStock.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="text-center py-4 font-semibold text-red-500"
+                        >
+                          {tableInfo}
+                        </td>
+                      </tr>
+                    ) : (
+                      bloodStock
+                        .filter(
+                          (bank) =>
+                            (!filterName ||
+                              bank.bloodBankName === filterName) &&
+                            (!filterGroup || bank.bloodGroup === filterGroup) &&
+                            (!filterType || bank.bloodType === filterType)
+                        )
+                        .map((bank, index) => (
+                          <tr key={bank.id || index} className="border-t">
+                            <td className="px-4 py-2 border">
+                              {bank.bloodBankName}
+                            </td>
+                            <td className="px-4 py-2 border">
+                              {bank.bloodGroup}
+                            </td>
+                            <td className="px-4 py-2 border">
+                              {bank.bloodType}
+                            </td>
+                            <td className="px-4 py-2 border">
+                              {bank.quantity}
+                            </td>
+                            <td className="px-4 py-2 border">
+                              <button
+                                onClick={() => handleEdit(bank)}
+                                className="text-blue-600 hover:underline mr-4 hover:cursor-pointer"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(bank.id)}
+                                className="text-red-600 hover:underline hover:cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </>
-);
+
+      {/* Modal section */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/70 bg-opacity-40 flex items-center justify-center z-30 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-center text-blue-900 mb-6">
+              Edit Blood Stock Details
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Blood Type
+                </label>
+                <select
+                  value={editData.bloodType}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
+                  onChange={(e) =>
+                    setEditData({ ...editData, bloodType: e.target.value })
+                  }
+                >
+                  <option value="" disabled>
+                    Select Blood Type
+                  </option>
+                  <option value="Whole Blood">Whole Blood</option>
+                  <option value="Single Donor Platelet">
+                    Single Donor Platelet
+                  </option>
+                  <option value="Single Donor Plasma">
+                    Single Donor Plasma
+                  </option>
+                  <option value="Sagm Packed Red Blood Cells">
+                    Sagm Packed Red Blood Cells
+                  </option>
+                  <option value="Random Donor Platelets">
+                    Random Donor Platelets
+                  </option>
+                  <option value="Platelet Rich Plasma">
+                    Platelet Rich Plasma
+                  </option>
+                  <option value="Platelet Concentrate">
+                    Platelet Concentrate
+                  </option>
+                  <option value="Plasma">Plasma</option>
+                  <option value="Packed Red Blood Cells">
+                    Packed Red Blood Cells
+                  </option>
+                  <option value="Leukoreduced RBC">Leukoreduced RBC</option>
+                  <option value="Irradiated RBC">Irradiated RBC</option>
+                  <option value="Fresh Frozen Plasma">
+                    Fresh Frozen Plasma
+                  </option>
+                  <option value="Cryoprecipitate">Cryoprecipitate</option>
+                  <option value="Cryo Poor Plasma">Cryo Poor Plasma</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Blood Group
+                </label>
+                <select
+                  value={editData.bloodGroup}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
+                  onChange={(e) =>
+                    setEditData({ ...editData, bloodGroup: e.target.value })
+                  }
+                >
+                  <option value="" disabled>
+                    Select Blood Type
+                  </option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  value={editData.quantity}
+                  onChange={(e) =>
+                    setEditData({ ...editData, quantity: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                className="px-4 py-2 rounded-md bg-blue-900 hover:bg-blue-800 text-white hover:cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default AdminAvailability;

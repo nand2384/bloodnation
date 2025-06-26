@@ -16,6 +16,8 @@ function AddBank() {
   const [bloodBankCategory, setBloodBankCategory] = useState("");
   const [password, setPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -853,6 +855,7 @@ function AddBank() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch("http://localhost:3000/admin/addBank", {
@@ -898,11 +901,21 @@ function AddBank() {
       }
     } catch (error) {
       console.log("Fetch Error", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-blue-200">
+          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+            <div className="w-10 h-10 border-4 border-t-transparent border-blue-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
       <div className=" flex h-screen">
         <Sidebar />
         <div className=" flex-1 bg-white">

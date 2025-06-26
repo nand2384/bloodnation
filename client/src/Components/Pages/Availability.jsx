@@ -9,13 +9,13 @@ function Availability() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const verifyUser = async () => {
+    const fetchUser = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         setNavComponent(<LoggedNavbar />);
         try {
           const response = await fetch(
-            "http://localhost:3000/api/verify/user",
+            "http://localhost:3000/api/fetch/user",
             {
               method: "GET",
               headers: {
@@ -42,7 +42,7 @@ function Availability() {
       }
     };
 
-    verifyUser();
+    fetchUser();
   }, []);
 
   const stateCityMap = {

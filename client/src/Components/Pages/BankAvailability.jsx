@@ -14,7 +14,8 @@ function BankAvailability() {
   const [bloodStockList, setBloodStockList] = useState([]);
 
   const [errorMessage, setErrorMessage] = useState("");
-  const [errorStatus, setErrorStatus] = useState(false);
+  const [errorStatus1, setErrorStatus1] = useState(false);
+  const [errorStatus2, setErrorStatus2] = useState(false);
 
   const [modalErrorStatus, setModalErrorStatus] = useState(false);
 
@@ -62,29 +63,27 @@ function BankAvailability() {
   }, [bloodStockList]);
 
   useEffect(() => {
-    const fieldsEmpty =
-      bloodGroup === "" || bloodType === "" || quantity === "";
     const duplicateExists = bloodStockList.some(
       (item) => item.bloodGroup === bloodGroup && item.bloodType === bloodType
     );
-
-    if (fieldsEmpty) {
-      setErrorMessage("All fields are required.");
-      setErrorStatus(true);
-    } else {
-      setErrorMessage("");
-      setErrorStatus(false);
-    }
     if (duplicateExists) {
       setErrorMessage(
         "This blood group and type already exists, please update instead."
       );
-      setErrorStatus(true);
+      setErrorStatus1(true);
     } else {
       setErrorMessage("");
-      setErrorStatus(false);
+      setErrorStatus1(false);
     }
-  }, [bloodGroup, bloodType, quantity, bloodStockList]);
+  }, [bloodGroup, bloodType, bloodStockList]);
+
+  useEffect(() => {
+    if(bloodGroup == "" || bloodType == "" || quantity == "") {
+      setErrorStatus2(true);
+    } else {
+      setErrorStatus2(false);
+    }
+  }, [bloodGroup, bloodType, quantity])
 
   useEffect(() => {
     if (newBloodGroup == "" || newBloodType == "" || newQuantity == "") {
@@ -98,7 +97,7 @@ function BankAvailability() {
     e.preventDefault();
     const bankToken = localStorage.getItem("bankToken");
 
-    if (errorStatus == false) {
+    if (errorStatus1 == false && errorStatus2 == false) {
       setLoading(true);
       try {
         const response = await fetch(

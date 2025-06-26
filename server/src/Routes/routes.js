@@ -2,9 +2,11 @@ const express = require("express");
 const {
   loginUser,
   userRegister,
+  fetchUser,
   verifyUser,
   verifyBank,
   changeUserPassword,
+  updateProfile,
   bloodBankLogin,
   changeBankPassword,
   addBloodStock,
@@ -12,6 +14,7 @@ const {
   updateBloodStock,
   deleteBloodStock,
 } = require("../Models/userModel.js");
+const { auth, messaging } = require("firebase-admin");
 
 const router = express.Router();
 
@@ -78,23 +81,45 @@ router.post("/user/register", async (req, res) => {
   }
 });
 
-router.get("/verify/user", async (req, res) => {
+router.get("/fetch/user", async (req, res) => {
   const authHeader = req.headers.authorization;
 
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
 
-    const response = await verifyUser(token);
+    const response = await fetchUser(token);
 
-    if (response || null) {
+    if (response) {
       res.status(200).json({ response });
-    } else {
-      res.status(401).json({ message: "Something is wrong!" });
+    } else if(response == null) {
+      res.status(404).json({ message: "Email changed!" });
     }
   } else {
     return res.status(401).json({ message: "Unauthorized" });
   }
 });
+
+router.post("/updateProfile", async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if(authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    const docId = await verifyUser(token);
+
+    if(docId) {
+      const {firstName, lastName, fatherName, age, bloodGroup, email} = req.body;
+
+      const response = await updateProfile(docId, firstName, lastName, fatherName, age, bloodGroup, email);
+
+      if(response == true) {
+        res.status(200).json({ message: "User data updated!"});
+      } else if (response == null) {
+        res.status(401).json({ message: "There was some error, please try again!"});
+      }
+    }
+  }
+})
 
 router.get("/verify/bloodbank", async (req, res) => {
   const authHeader = req.headers.authorization;
@@ -195,9 +220,7 @@ router.post("/update/bloodstock", async (req, res) => {
   if (result == true) {
     res.status(200).json({ message: "Data Updated!" });
   } else {
-    res
-      .status(401)
-      .json({ message: "There was some error, please try again!" });
+    res.status(401).json({ message: "There was some error, please try again!" });
   }
 });
 

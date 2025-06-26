@@ -8,14 +8,14 @@ function Home() {
   const [navComponent, setNavComponent] = useState(null);
 
   useEffect(() => {
-    const verifyUser = async () => {
+    const fetchUser = async () => {
 
       const token = localStorage.getItem("token");
       const bankToken = localStorage.getItem("bankToken");
       if (token) {
         setNavComponent(<LoggedNavbar />)
         try {
-          const response = await fetch('http://localhost:3000/api/verify/user', {
+          const response = await fetch('http://localhost:3000/api/fetch/user', {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -69,7 +69,7 @@ function Home() {
         setNavComponent(<Navbar />)
       } 
     }
-    verifyUser();
+    fetchUser();
     }, []);
 
   return (

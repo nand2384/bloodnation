@@ -11,6 +11,54 @@ function BloodBanks() {
 
   const navigate = useNavigate();
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({});
+
+  const [errorStatus, setErrorStatus] = useState(false);
+
+  const handleEdit = (bank) => {
+    setEditData(bank);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+
+    if (errorStatus == false) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/admin/update/bloodbank",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "Application/json",
+            },
+            body: JSON.stringify(editData),
+          }
+        );
+
+        if(response.status == 200) {
+          setIsEditModalOpen(false);
+          fetchBloodBank();
+        } else if(response.status == 401) {
+          const responseBody = await response.json();
+          const errorMessage = responseBody.message;
+          alert(message);
+        }
+      } catch (error) {
+        console.log("Error fetching /update/bloodbank: ", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const stateCityMap = {
     "Andhra Pradesh": [
       "Alluri Sitharama Raju",
@@ -836,9 +884,15 @@ function BloodBanks() {
   const [city, setCity] = useState("");
   const [citiesList, setCitiesList] = useState([]);
 
+  const [editCitiesList, setEditCitiesList] = useState([]);
+
   useEffect(() => {
     setCitiesList(stateCityMap[state] || []);
   }, [state]);
+
+  useEffect(() => {
+    setEditCitiesList(stateCityMap[editData.state] || []);
+  }, [editData.state]);
 
   useEffect(() => {
     const status = sessionStorage.getItem("admin");
@@ -846,6 +900,14 @@ function BloodBanks() {
       navigate("/admin");
     }
   }, []);
+
+  useEffect(() => {
+    if (editData.bloodBankName == "" || editData.bankId == "" || editData.bankEmail == "" || editData.bloodBankCategory == "" || editData.licenseNumber == "" || editData.licenseValidity == "" || editData.contactPerson == "" || editData.contactNumber == "" || editData.address == "" || editData.state == "" || editData.city == "") {
+      setErrorStatus(true);
+    } else {
+      setErrorStatus(false);
+    }
+  }, [editData]);
 
   const fetchBloodBank = async () => {
     setLoading(true);
@@ -876,30 +938,32 @@ function BloodBanks() {
     }
   };
 
-  const handleEdit = () => {
-
-  }
+  useEffect(() => {
+    console.log(bloodBank);
+  }, [bloodBank])
 
   const handleDelete = async (docId) => {
-    if(window.confirm("Do you want to delete this blood bank?")) {
+    if (window.confirm("Do you want to delete this blood bank?")) {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:3000/admin/delete/bloodbank", {
-          method: "POST",
-          headers: {
-            "Content-Type": "Application/json",
-          },
-          body: JSON.stringify({ docId }),
-        });
+        const response = await fetch(
+          "http://localhost:3000/admin/delete/bloodbank",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "Application/json",
+            },
+            body: JSON.stringify({ docId }),
+          }
+        );
 
         const responseStatus = response.status;
-        if(responseStatus == 200) {
+        if (responseStatus == 200) {
           return;
         } else if (responseStatus == 401) {
           const responseData = await response.json();
           alert(responseData.message);
         }
-
       } catch (error) {
         console.log("Error fetching /delete/bloodbank: ", error);
         setLoading(false);
@@ -908,7 +972,7 @@ function BloodBanks() {
         fetchBloodBank();
       }
     }
-  }
+  };
 
   return (
     <>
@@ -935,7 +999,7 @@ function BloodBanks() {
               <div className="flex flex-wrap gap-4">
                 <select
                   name="state"
-                  className="border p-2 rounded-md shadow w-52"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
                   onChange={(e) => setState(e.target.value)}
                 >
                   <option value="" selected disabled>
@@ -978,7 +1042,7 @@ function BloodBanks() {
                 </select>
                 <select
                   name="city"
-                  className="border p-2 rounded-md shadow w-52"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
                   onChange={(e) => setCity(e.target.value)}
                 >
                   <option value="" selected disabled>
@@ -1008,7 +1072,7 @@ function BloodBanks() {
                 <select
                   value={filterName}
                   onChange={(e) => setFilterName(e.target.value)}
-                  className="border p-2 rounded-md shadow w-52"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
                 >
                   <option value="">All Bank Names</option>
                   {[...new Set(bloodBank.map((b) => b.bloodBankName))].map(
@@ -1023,7 +1087,7 @@ function BloodBanks() {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="border p-2 rounded-md shadow w-52"
+                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
                 >
                   <option value="">All Categories</option>
                   {[...new Set(bloodBank.map((b) => b.bloodBankCategory))].map(
@@ -1124,6 +1188,245 @@ function BloodBanks() {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/70 bg-opacity-40 flex items-center justify-center z-30 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-center text-blue-900 mb-6">
+              Edit Blood Bank Details
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Blood Bank Name
+                </label>
+                <input
+                  type="text"
+                  value={editData.bloodBankName}
+                  onChange={(e) =>
+                    setEditData({ ...editData, bloodBankName: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Bank ID
+                </label>
+                <input
+                  type="number"
+                  value={editData.bankId}
+                  onChange={(e) =>
+                    setEditData({ ...editData, bankId: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editData.bankEmail}
+                  onChange={(e) =>
+                    setEditData({ ...editData, bankEmail: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={editData.bloodBankCategory}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
+                  onChange={(e) =>
+                    setEditData({
+                      ...editData,
+                      bloodBankCategory: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select Blood Bank Category</option>
+                  <option value="Government">Government</option>
+                  <option value="Private">Private</option>
+                  <option value="NGO">NGO</option>
+                  <option value="Hospital-based">Hospital-based</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  License Number
+                </label>
+                <input
+                  type="number"
+                  value={editData.licenseNumber}
+                  onChange={(e) =>
+                    setEditData({ ...editData, licenseNumber: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  License Validity
+                </label>
+                <input
+                  type="date"
+                  value={editData.licenseValidity}
+                  onChange={(e) =>
+                    setEditData({
+                      ...editData,
+                      licenseValidity: e.target.value,
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Contact Person
+                </label>
+                <input
+                  type="text"
+                  value={editData.contactPerson}
+                  onChange={(e) =>
+                    setEditData({ ...editData, contactPerson: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Contact Number
+                </label>
+                <input
+                  type="number"
+                  value={editData.contactNumber}
+                  onChange={(e) =>
+                    setEditData({ ...editData, contactNumber: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Address
+                </label>
+                <textarea
+                  value={editData.address}
+                  onChange={(e) =>
+                    setEditData({ ...editData, address: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  State
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
+                  value={editData.state}
+                  onChange={(e) =>
+                    setEditData({ ...editData, state: e.target.value })
+                  }
+                >
+                  <option value="" disabled>
+                    Select State
+                  </option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chandigarh">Chandigarh</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Daman and Diu">Daman and Diu</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Ladakh">Ladakh</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Puducherry">Puducherry</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  City
+                </label>
+                <select
+                  name="city"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
+                  value={editData.city}
+                  onChange={(e) =>
+                    setEditData({ ...editData, city: e.target.value })
+                  }
+                >
+                  <option value="" disabled>
+                    Select City
+                  </option>
+                  {editCitiesList.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                className="px-4 py-2 rounded-md bg-blue-900 hover:bg-blue-800 text-white hover:cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

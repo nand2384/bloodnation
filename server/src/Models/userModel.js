@@ -106,7 +106,7 @@ const userRegister = async (
   }
 };
 
-const verifyUser = async (token) => {
+const fetchUser = async (token) => {
   const payload = jwt.decode(token, SECRET_KEY);
   const email = payload.email;
   const docId = payload.id;
@@ -119,7 +119,23 @@ const verifyUser = async (token) => {
   if (data.email == email) {
     return data;
   } else {
-    return "There is no user with that email!";
+    return null;
+  }
+};
+
+const verifyUser = async (token) => {
+  const payload = jwt.decode(token, SECRET_KEY);
+  const docId = payload.id;
+
+  const docRef = db.collection("users").doc(docId);
+  const doc = await docRef.get();
+
+  const data = doc.data();
+
+  if (data) {
+    return docId;
+  } else {
+    return null;
   }
 };
 
@@ -166,7 +182,7 @@ const changeUserPassword = async (email, oldPassword, newPassword) => {
 
       try {
         const updateDocRef = db.collection("users").doc(docRef.id);
-        
+
         const updatingDocResult = await updateDocRef.update({
           password: newHashedPassword,
         });
@@ -182,6 +198,25 @@ const changeUserPassword = async (email, oldPassword, newPassword) => {
     }
   } catch (error) {
     console.log("userModel changePassword Error: ", error);
+  }
+};
+
+const updateProfile = async (docId, firstName, lastName, fatherName, age, bloodGroup, email) => {
+  const docRef = db.collection("users").doc(docId);
+
+  const snapshot = await docRef.update({
+    firstName,
+    lastName,
+    fatherName,
+    age,
+    bloodGroup,
+    email
+  });
+
+  if(snapshot) {
+    return true;
+  } else {
+    return null;
   }
 };
 
@@ -211,7 +246,7 @@ const changeBankPassword = async (bankId, oldPassword, newPassword) => {
 
       try {
         const updateDocRef = db.collection("bloodbanks").doc(docRef.id);
-        
+
         const updatingDocResult = await updateDocRef.update({
           bloodBankPassword: newHashedPassword,
         });
@@ -299,29 +334,36 @@ const fetchBloodStock = async (token) => {
 
     const bloodBankName = bankData.bloodBankName;
 
-    const snapshot = await db.collection("bloodstock").where("bloodBankName", "==", bloodBankName).get();
+    const snapshot = await db
+      .collection("bloodstock")
+      .where("bloodBankName", "==", bloodBankName)
+      .get();
 
     snapshot.forEach((doc) => {
       bloodStock.push({ id: doc.id, ...doc.data() });
     });
 
     return bloodStock;
-
   } catch (error) {
     console.log("Error fetching blood stock: ", error);
   }
 };
 
-const updateBloodStock = async (stockId, newBloodGroup, newBloodType, newQuantity) => {
+const updateBloodStock = async (
+  stockId,
+  newBloodGroup,
+  newBloodType,
+  newQuantity
+) => {
   const docRef = db.collection("bloodstock").doc(stockId);
 
   const snapshot = await docRef.update({
     bloodGroup: newBloodGroup,
     bloodType: newBloodType,
-    quantity: newQuantity
+    quantity: newQuantity,
   });
 
-  if(snapshot) {
+  if (snapshot) {
     return true;
   } else {
     return null;
@@ -333,23 +375,25 @@ const deleteBloodStock = async (stockId) => {
 
   const snapshot = await docRef.delete();
 
-  if(snapshot) {
+  if (snapshot) {
     return true;
   } else {
     return null;
   }
-}
+};
 
 module.exports = {
   loginUser,
   userRegister,
+  fetchUser,
   verifyUser,
   changeUserPassword,
+  updateProfile,
   bloodBankLogin,
   changeBankPassword,
   verifyBank,
   addBloodStock,
   fetchBloodStock,
   updateBloodStock,
-  deleteBloodStock
+  deleteBloodStock,
 };

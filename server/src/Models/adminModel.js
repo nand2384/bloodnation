@@ -42,14 +42,18 @@ const fetchUsersService = async () => {
 };
 
 const fetchBloodStockService = async (state, city) => {
-  const snapshot = await db.collection("bloodstock").where("state", "==", state).where("city", "==", city).get();
+  const snapshot = await db
+    .collection("bloodstock")
+    .where("state", "==", state)
+    .where("city", "==", city)
+    .get();
   const bloodStock = [];
 
   snapshot.forEach((doc) => {
     bloodStock.push({ id: doc.id, ...doc.data() });
   });
 
-  if(bloodStock.empty) {
+  if (bloodStock.empty) {
     return null;
   } else {
     return bloodStock;
@@ -57,7 +61,11 @@ const fetchBloodStockService = async (state, city) => {
 };
 
 const fetchBloodBankService = async (state, city) => {
-  const snapshot = await db.collection("bloodbanks").where("state", "==", state).where("city", "==", city).get();
+  const snapshot = await db
+    .collection("bloodbanks")
+    .where("state", "==", state)
+    .where("city", "==", city)
+    .get();
   const bloodbanks = [];
 
   snapshot.forEach((doc) => {
@@ -65,7 +73,7 @@ const fetchBloodBankService = async (state, city) => {
   });
 
   return bloodbanks;
-}
+};
 
 const addBankService = async (
   bloodBankName,
@@ -117,7 +125,7 @@ const addBankService = async (
     licenseValidity,
     bloodBankCategory,
     bankId,
-    bloodBankPassword
+    bloodBankPassword,
   };
 
   try {
@@ -129,8 +137,73 @@ const addBankService = async (
   }
 };
 
+const updateBankService = async (
+  id,
+  bankId,
+  bloodBankName,
+  bankEmail,
+  bloodBankCategory,
+  licenseNumber,
+  licenseValidity,
+  contactPerson,
+  contactNumber,
+  address,
+  state,
+  city
+) => {
+  const docRef = db.collection("bloodbanks").doc(id);
+
+  const snapshot = await docRef.update({
+    bankId,
+    bloodBankName,
+    bankEmail,
+    bloodBankCategory,
+    licenseNumber,
+    licenseValidity,
+    contactPerson,
+    contactNumber,
+    address,
+    state,
+    city,
+  });
+
+  if (snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+};
+
 const deleteBankService = async (docId) => {
   const docRef = db.collection("bloodbanks").doc(docId);
+
+  const snapshot = await docRef.delete();
+
+  if (snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+};
+
+const updateBloodStockService = async (id, bloodGroup, bloodType, quantity) => {
+  const docRef = db.collection("bloodstock").doc(id);
+
+  const snapshot = await docRef.update({
+    bloodGroup,
+    bloodType,
+    quantity,
+  });
+
+  if (snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+};
+
+const deleteBloodStockService = async (docId) => {
+  const docRef = db.collection("bloodstock").doc(docId);
 
   const snapshot = await docRef.delete();
 
@@ -139,7 +212,29 @@ const deleteBankService = async (docId) => {
   } else {
     return null;
   }
-}
+};
 
+const deleteUserService = async (docId) => {
+  const docRef = db.collection("users").doc(docId);
 
-module.exports = { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService, deleteBankService };
+  const snapshot = await docRef.delete();
+
+  if(snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+};
+
+module.exports = {
+  adminLogin,
+  fetchUsersService,
+  fetchBloodStockService,
+  fetchBloodBankService,
+  addBankService,
+  updateBankService,
+  deleteBankService,
+  updateBloodStockService,
+  deleteBloodStockService,
+  deleteUserService
+};
