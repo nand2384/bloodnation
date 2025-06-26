@@ -7,7 +7,7 @@ function BloodBanks() {
   const [filterName, setFilterName] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tableInfo, setTableInfo] = useState("Search for Blood Stock!")
+  const [tableInfo, setTableInfo] = useState("Search for Blood Stock!");
 
   const navigate = useNavigate();
 
@@ -862,7 +862,7 @@ function BloodBanks() {
         }
       );
       const result = await response.json();
-      if(result.length == 0) {
+      if (result.length == 0) {
         setBloodBank([]);
         setTableInfo("No data available!");
       } else {
@@ -875,6 +875,40 @@ function BloodBanks() {
       setLoading(false);
     }
   };
+
+  const handleEdit = () => {
+
+  }
+
+  const handleDelete = async (docId) => {
+    if(window.confirm("Do you want to delete this blood bank?")) {
+      setLoading(true);
+      try {
+        const response = await fetch("http://localhost:3000/admin/delete/bloodbank", {
+          method: "POST",
+          headers: {
+            "Content-Type": "Application/json",
+          },
+          body: JSON.stringify({ docId }),
+        });
+
+        const responseStatus = response.status;
+        if(responseStatus == 200) {
+          return;
+        } else if (responseStatus == 401) {
+          const responseData = await response.json();
+          alert(responseData.message);
+        }
+
+      } catch (error) {
+        console.log("Error fetching /delete/bloodbank: ", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+        fetchBloodBank();
+      }
+    }
+  }
 
   return (
     <>
@@ -1010,6 +1044,7 @@ function BloodBanks() {
               <table className="min-w-full table-auto border-collapse border border-gray-300">
                 <thead className="bg-blue-900 text-white">
                   <tr>
+                    <th className="px-4 py-2 border">Actions</th>
                     <th className="px-4 py-2 border">Blood Bank Name</th>
                     <th className="px-4 py-2 border">Bank ID</th>
                     <th className="px-4 py-2 border">Bank Email</th>
@@ -1026,13 +1061,13 @@ function BloodBanks() {
                 <tbody>
                   {bloodBank.length === 0 ? (
                     <tr>
-                    <td
-                      colSpan="11"
-                      className="text-center py-4 font-semibold text-red-500"
-                    >
-                      {tableInfo}
-                    </td>
-                  </tr>
+                      <td
+                        colSpan="11"
+                        className="text-center py-4 font-semibold text-red-500"
+                      >
+                        {tableInfo}
+                      </td>
+                    </tr>
                   ) : (
                     bloodBank
                       .filter(
@@ -1043,6 +1078,20 @@ function BloodBanks() {
                       )
                       .map((bank, index) => (
                         <tr key={bank.id || index} className="border-t">
+                          <td className="px-4 py-2 border">
+                            <button
+                              onClick={() => handleEdit(bank)}
+                              className="text-blue-600 hover:underline mr-4 hover:cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(bank.id)}
+                              className="text-red-600 hover:underline hover:cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </td>
                           <td className="px-4 py-2 border">
                             {bank.bloodBankName}
                           </td>

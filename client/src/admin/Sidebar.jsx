@@ -9,7 +9,7 @@ const Sidebar = () => {
       <div
         className={`${
           isOpen ? "w-64" : "w-0"
-        } bg-blue-900 text-white transition-all duration-300 overflow-hidden`}
+        } bg-blue-900 text-white transition-all duration-300 h-full`}
       >
         <div className="p-4 text-xl font-bold border-b border-blue-700">
           Admin Panel

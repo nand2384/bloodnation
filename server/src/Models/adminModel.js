@@ -129,5 +129,17 @@ const addBankService = async (
   }
 };
 
+const deleteBankService = async (docId) => {
+  const docRef = db.collection("bloodbanks").doc(docId);
 
-module.exports = { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService };
+  const snapshot = await docRef.delete();
+
+  if(snapshot) {
+    return true;
+  } else {
+    return null;
+  }
+}
+
+
+module.exports = { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService, deleteBankService };

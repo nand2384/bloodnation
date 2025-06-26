@@ -5,6 +5,13 @@ import { useNavigate } from "react-router-dom";
 function AdminAvailability() {
   const [bloodStock, setBloodStock] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+  const [tableInfo, setTableInfo] = useState("Search for Blood Stock!");
+
+  const [filterName, setFilterName] = useState("");
+  const [filterGroup, setFilterGroup] = useState("");
+  const [filterType, setFilterType] = useState("");
+
   const navigate = useNavigate();
 
   const stateCityMap = {
@@ -844,6 +851,7 @@ function AdminAvailability() {
   }, []);
 
   const fetchBloodStock = async () => {
+    setLoading(true);
     try {
       const response = await fetch(
         "http://localhost:3000/admin/fetchBloodStock",
@@ -854,42 +862,53 @@ function AdminAvailability() {
           },
           body: JSON.stringify({
             state,
-            city
-          })
+            city,
+          }),
         }
       );
       const result = await response.json();
-      if(result != null) {
+      if (result.length == 0) {
+        setBloodStock([]);
+        setTableInfo("No data available!");
+      } else {
         setBloodStock(result);
-      } else if (result == null) {
-        const message = result.message;
-        alert(message);
+        setTableInfo("");
       }
     } catch (error) {
       console.log("Fetch Error: ", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <div className="flex h-screen">
-        <Sidebar />
-        <div className="flex-1 bg-white">
-          <div className="flex items-center justify-between p-4 border-b shadow">
-            <h1 className="text-2xl font-semibold text-blue-900">
-              Blood Availability Details
-            </h1>
-          </div>
-          {/* Search Section */}
-          <div className="px-6 pt-6">
-            <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
-              <h2 className="font-semibold text-blue-800 mb-4">Search</h2>
-              <div className="flex flex-wrap gap-4">
-                <select
-                  name="state"
-                  className="border p-2 rounded-md shadow w-52"
-                  onChange={(e) => setState(e.target.value)}
-                >
+  <>
+    {loading && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-blue-200">
+        <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-400 rounded-full animate-spin"></div>
+        </div>
+      </div>
+    )}
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 bg-white overflow-auto">
+        <div className="flex items-center justify-between p-4 border-b shadow">
+          <h1 className="text-2xl font-semibold text-blue-900">
+            Blood Availability Details
+          </h1>
+        </div>
+
+        {/* Search Section */}
+        <div className="px-6 pt-6">
+          <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
+            <h2 className="font-semibold text-blue-800 mb-4">Search</h2>
+            <div className="flex flex-wrap gap-4">
+              <select
+                name="state"
+                className="border p-2 rounded-md shadow w-52"
+                onChange={(e) => setState(e.target.value)}
+              >
                   <option value="" selected disabled>
                     Select State
                   </option>
@@ -927,35 +946,84 @@ function AdminAvailability() {
                   <option value="Uttar Pradesh">Uttar Pradesh</option>
                   <option value="Uttarakhand">Uttarakhand</option>
                   <option value="West Bengal">West Bengal</option>
-                </select>
-                <select
-                  name="city"
-                  className="border p-2 rounded-md shadow w-52"
-                  onChange={(e) => setCity(e.target.value)}
-                >
-                  <option value="" selected disabled>
-                    Select City
+              </select>
+              <select
+                name="city"
+                className="border p-2 rounded-md shadow w-52"
+                onChange={(e) => setCity(e.target.value)}
+              >
+                <option value="" selected disabled>
+                  Select City
+                </option>
+                {citiesList.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
                   </option>
-                  {citiesList.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="bg-blue-900 text-white px-4 py-2 rounded-md shadow hover:bg-blue-800 cursor-pointer"
-                  onClick={fetchBloodStock}
-                >
-                  Search
-                </button>
-              </div>
+                ))}
+              </select>
+              <button
+                className="bg-blue-900 text-white px-4 py-2 rounded-md shadow hover:bg-blue-800 cursor-pointer"
+                onClick={fetchBloodStock}
+              >
+                Search
+              </button>
             </div>
           </div>
+        </div>
 
-          <div className="p-6 text-gray-800">
-            <div className="overflow-x-auto">
+        {/* Filter Section */}
+        <div className="px-6">
+          <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
+            <h2 className="font-semibold text-blue-800 mb-4">Filter</h2>
+            <div className="flex flex-wrap gap-4">
+              <select
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                className="border p-2 rounded-md shadow w-52"
+              >
+                <option value="">All Bank Names</option>
+                {[...new Set(bloodStock.map((b) => b.bloodBankName))].map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={filterGroup}
+                onChange={(e) => setFilterGroup(e.target.value)}
+                className="border p-2 rounded-md shadow w-52"
+              >
+                <option value="">All Blood Groups</option>
+                {[...new Set(bloodStock.map((b) => b.bloodGroup))].map((group) => (
+                  <option key={group} value={group}>
+                    {group}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="border p-2 rounded-md shadow w-52"
+              >
+                <option value="">All Blood Types</option>
+                {[...new Set(bloodStock.map((b) => b.bloodType))].map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Section */}
+        <div className="p-6 text-gray-800">
+          <div className="overflow-x-auto">
+            <div className="overflow-y-auto">
               <table className="min-w-full table-auto border-collapse border border-gray-300">
-                <thead className="bg-blue-900 text-white">
+                <thead className="bg-blue-900 text-white sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-2 border">Blood Bank Name</th>
                     <th className="px-4 py-2 border">State</th>
@@ -966,24 +1034,43 @@ function AdminAvailability() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bloodStock.map((bank, index) => (
-                    <tr key={bank.id || index} className="border-t">
-                      <td className="px-4 py-2 border">{bank.bloodBankName}</td>
-                      <td className="px-4 py-2 border">{bank.state}</td>
-                      <td className="px-4 py-2 border">{bank.city}</td>
-                      <td className="px-4 py-2 border">{bank.bloodGroup}</td>
-                      <td className="px-4 py-2 border">{bank.bloodType}</td>
-                      <td className="px-4 py-2 border">{bank.quantity}</td>
+                  {bloodStock.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-4 font-semibold text-red-500"
+                      >
+                        {tableInfo}
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    bloodStock
+                      .filter(
+                        (bank) =>
+                          (!filterName || bank.bloodBankName === filterName) &&
+                          (!filterGroup || bank.bloodGroup === filterGroup) &&
+                          (!filterType || bank.bloodType === filterType)
+                      )
+                      .map((bank, index) => (
+                        <tr key={bank.id || index} className="border-t">
+                          <td className="px-4 py-2 border">{bank.bloodBankName}</td>
+                          <td className="px-4 py-2 border">{bank.state}</td>
+                          <td className="px-4 py-2 border">{bank.city}</td>
+                          <td className="px-4 py-2 border">{bank.bloodGroup}</td>
+                          <td className="px-4 py-2 border">{bank.bloodType}</td>
+                          <td className="px-4 py-2 border">{bank.quantity}</td>
+                        </tr>
+                      ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
-    </>
-  );
+    </div>
+  </>
+);
 }
 
 export default AdminAvailability;

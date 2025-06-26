@@ -1,5 +1,5 @@
 const express = require('express');
-const { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService } = require('../Models/adminModel');
+const { adminLogin, fetchUsersService, fetchBloodStockService, fetchBloodBankService, addBankService, deleteBankService } = require('../Models/adminModel');
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
@@ -57,6 +57,18 @@ router.post('/addBank', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
+    }
+});
+
+router.post('/delete/bloodbank', async (req, res) => {
+    const docId = req.body.docId;
+
+    const response = await deleteBankService(docId);
+
+    if(response == true) {
+        res.status(200).json({message: "Blood Bank was deleted!"});
+    } else {
+        res.status(401).json({message: "There was some error, please try again!"});
     }
 });
 

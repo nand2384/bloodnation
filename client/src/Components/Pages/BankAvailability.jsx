@@ -10,7 +10,13 @@ function BankAvailability() {
   const [newQuantity, setNewQuantity] = useState("");
   const [editId, setEditId] = useState("");
   const [showModal, setShowModal] = useState(false);
+
   const [bloodStockList, setBloodStockList] = useState([]);
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorStatus, setErrorStatus] = useState(false);
+
+  const [modalErrorStatus, setModalErrorStatus] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -51,27 +57,69 @@ function BankAvailability() {
     fetchStockList();
   }, []);
 
+  useEffect(() => {
+    console.log("Updated bloodStockList:", bloodStockList);
+  }, [bloodStockList]);
+
+  useEffect(() => {
+    const fieldsEmpty =
+      bloodGroup === "" || bloodType === "" || quantity === "";
+    const duplicateExists = bloodStockList.some(
+      (item) => item.bloodGroup === bloodGroup && item.bloodType === bloodType
+    );
+
+    if (fieldsEmpty) {
+      setErrorMessage("All fields are required.");
+      setErrorStatus(true);
+    } else {
+      setErrorMessage("");
+      setErrorStatus(false);
+    }
+    if (duplicateExists) {
+      setErrorMessage(
+        "This blood group and type already exists, please update instead."
+      );
+      setErrorStatus(true);
+    } else {
+      setErrorMessage("");
+      setErrorStatus(false);
+    }
+  }, [bloodGroup, bloodType, quantity, bloodStockList]);
+
+  useEffect(() => {
+    if (newBloodGroup == "" || newBloodType == "" || newQuantity == "") {
+      setModalErrorStatus(true);
+    } else {
+      setModalErrorStatus(false);
+    }
+  }, [bloodGroup, bloodType, quantity]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     const bankToken = localStorage.getItem("bankToken");
 
-    try {
-      const response = await fetch("http://localhost:3000/api/add/bloodstock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${bankToken}`,
-        },
-        body: JSON.stringify({ bloodGroup, bloodType, quantity }),
-      });
+    if (errorStatus == false) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/add/bloodstock",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${bankToken}`,
+            },
+            body: JSON.stringify({ bloodGroup, bloodType, quantity }),
+          }
+        );
 
-      resetForm();
-      fetchStockList();
-    } catch (error) {
-      console.log("Error submitting the bank data: ", error);
-    } finally {
-      setLoading(false);
+        resetForm();
+        fetchStockList();
+      } catch (error) {
+        console.log("Error submitting the bank data: ", error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -86,7 +134,6 @@ function BankAvailability() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     const bankToken = localStorage.getItem("bankToken");
     try {
       const response = await fetch(
@@ -139,6 +186,7 @@ function BankAvailability() {
         fetchStockList();
       } catch (error) {
         console.log("Error fetching /delete/bloodstock: ", error);
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -247,6 +295,9 @@ function BankAvailability() {
                 </div>
               </div>
               <div className="text-center">
+                {errorMessage && (
+                  <p className=" text-red-500 text-md mb-2">{errorMessage}</p>
+                )}
                 <button
                   type="submit"
                   className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-md transition hover:cursor-pointer"
