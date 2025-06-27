@@ -920,7 +920,7 @@ function Availability() {
           </div>
         </div>
       )}
-      <section className="h-[89vh] flex justify-center bg-red-50">
+      <section className=" h-[89vh] max-h-fit flex justify-center bg-red-50 overflow-auto">
         <div className=" flex justify-start flex-col mt-8 w-[90vw]">
           <h2 className="font-sans text-3xl text-left font-semibold">
             Blood Stock Availability
@@ -1048,7 +1048,7 @@ function Availability() {
               </button>
             </div>
           </div>
-          <div className="mt-6 max-h-80 overflow-y-auto border border-gray-200 rounded-md">
+          <div className="mt-6 mb-8 max-h-80 overflow-y-auto border border-gray-200 rounded-md">
             <table className="w-full table-fixed border-collapse">
               <thead className="sticky top-0 z-10 bg-green-100">
                 <tr>
