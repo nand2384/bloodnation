@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
+import { useDialogue } from "../Components/Common/Dialogue/DialogueContext.jsx";
 
 function Users() {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { showAlert, showConfirm } = useDialogue();
 
   useEffect(() => {
     const status = sessionStorage.getItem("admin");
@@ -38,7 +40,8 @@ function Users() {
   }, []);
 
   const handleDelete = async (docId) => {
-    if (window.confirm("Do you want to delete this user?")) {
+    const isConfirmed = await showConfirm("Do you want to delete this user?");
+    if (isConfirmed) {
       setLoading(true);
       try {
         const response = await fetch(
@@ -57,7 +60,7 @@ function Users() {
           return;
         } else if (responseStatus == 401) {
           const responseData = await response.json();
-          alert(responseData.message);
+          showAlert(responseData.message, 'error');
         }
       } catch (error) {
         console.log("Error fetching /delete/user: ", error);

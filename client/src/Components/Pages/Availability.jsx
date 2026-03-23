@@ -3,6 +3,7 @@ import Navbar from "../Common/Navbar/Navbar";
 import LoggedNavbar from "../Common/Navbar/LoggedNavbar";
 import { db } from "../../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import { Search, MapPin, Droplet, Activity, Building2, AlertCircle } from "lucide-react";
 
 function Availability() {
   const [navComponent, setNavComponent] = useState(null);
@@ -911,185 +912,194 @@ function Availability() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-rose-500/30 selection:text-rose-900 relative overflow-hidden">
       {navComponent}
+
+      {/* Soft Animated Orbs Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[10%] left-[-10%] w-[50vw] h-[50vw] bg-rose-400/10 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[45vw] h-[45vw] bg-blue-400/10 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+      </div>
+      
+      {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-red-200/30">
-          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
-            <div className="w-10 h-10 border-4 border-t-transparent border-red-400 rounded-full animate-spin"></div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md bg-white/60 transition-all">
+          <div className="flex flex-col items-center justify-center glass-panel p-8 rounded-3xl border border-slate-200 shadow-xl">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-red-600 rounded-full animate-spin mb-4 shadow-sm"></div>
+            <p className="text-sm font-bold text-slate-800 tracking-wide">Searching Blood Banks...</p>
           </div>
         </div>
       )}
-      <section className=" h-[89vh] max-h-fit flex justify-center bg-red-50 overflow-auto">
-        <div className=" flex justify-start flex-col mt-8 w-[90vw]">
-          <h2 className="font-sans text-3xl text-left font-semibold">
-            Blood Stock Availability
-          </h2>
-          <hr className="w-[90vw] mt-6" />
-          <div className="w-[90vw] mt-10 flex items-center pl-2 h-12 rounded-t-md bg-green-700 text-white font-semibold shadow-md shadow-black/20">
-            Search Blood Stock
-          </div>
-          <div className="w-[90vw] h-30 bg-white rounded-b-md shadow-md shadow-black/20 flex justify-around items-center">
-            <div className="w-[90vw] h-30 bg-white rounded-b-md shadow-md shadow-black/20 flex justify-around items-center">
+
+      {/* Main Content */}
+      <main className="flex-grow pt-32 pb-12 px-6 lg:px-8 max-w-7xl mx-auto w-full relative z-10">
+        {/* Page Header */}
+        <div className="mb-12 text-center max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight drop-shadow-sm">
+            Find Blood <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-500">Availability</span>
+          </h1>
+          <p className="text-slate-600 text-lg font-medium">
+            Search real-time blood stock across our nationwide network of verified blood banks.
+          </p>
+        </div>
+
+        {/* Search Card */}
+        <div className="glass-panel p-6 md:p-8 mb-12 rounded-3xl relative overflow-visible border-slate-200 group hover:border-red-200 transition-colors duration-500">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-rose-500 rounded-t-3xl opacity-80"></div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* State */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 tracking-wide uppercase">
+                <MapPin className="w-4 h-4 text-red-600" />
+                State
+              </label>
               <select
                 name="state"
-                className=" bg-green-200 p-2 rounded-md shadow-sm shadow-black/20 w-1/6"
+                className="w-full bg-white/80 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all cursor-pointer backdrop-blur-md appearance-none shadow-sm"
                 onChange={(e) => setState(e.target.value)}
+                value={state}
               >
-                <option value="" selected disabled>
-                  Select State
-                </option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                <option value="Assam">Assam</option>
-                <option value="Bihar">Bihar</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Chhattisgarh">Chhattisgarh</option>
-                <option value="Daman and Diu">Daman and Diu</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Goa">Goa</option>
-                <option value="Gujarat">Gujarat</option>
-                <option value="Haryana">Haryana</option>
-                <option value="Himachal Pradesh">Himachal Pradesh</option>
-                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                <option value="Jharkhand">Jharkhand</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Kerala">Kerala</option>
-                <option value="Ladakh">Ladakh</option>
-                <option value="Madhya Pradesh">Madhya Pradesh</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Manipur">Manipur</option>
-                <option value="Meghalaya">Meghalaya</option>
-                <option value="Mizoram">Mizoram</option>
-                <option value="Nagaland">Nagaland</option>
-                <option value="Odisha">Odisha</option>
-                <option value="Puducherry">Puducherry</option>
-                <option value="Punjab">Punjab</option>
-                <option value="Rajasthan">Rajasthan</option>
-                <option value="Sikkim">Sikkim</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Telangana">Telangana</option>
-                <option value="Tripura">Tripura</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="Uttarakhand">Uttarakhand</option>
-                <option value="West Bengal">West Bengal</option>
-              </select>
-              <select
-                name="city"
-                className=" bg-green-200 p-2 rounded-md shadow-sm shadow-black/20 w-1/6"
-                onChange={(e) => setCity(e.target.value)}
-              >
-                <option value="" selected disabled>
-                  Select City
-                </option>
-                {citiesList.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
+                <option value="" disabled className="bg-white text-slate-400">Select State</option>
+                {Object.keys(stateCityMap).map((st) => (
+                  <option key={st} value={st} className="bg-white text-slate-900">{st}</option>
                 ))}
               </select>
+            </div>
+
+            {/* City */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 tracking-wide uppercase">
+                <Building2 className="w-4 h-4 text-red-600" />
+                City
+              </label>
+              <select
+                name="city"
+                className="w-full bg-white/80 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all cursor-pointer backdrop-blur-md appearance-none disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                onChange={(e) => setCity(e.target.value)}
+                value={city}
+                disabled={!state}
+              >
+                <option value="" disabled className="bg-white text-slate-400">Select City</option>
+                {citiesList.map((c) => (
+                  <option key={c} value={c} className="bg-white text-slate-900">{c}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Blood Group */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 tracking-wide uppercase">
+                <Droplet className="w-4 h-4 text-red-600" />
+                Blood Group
+              </label>
               <select
                 name="bloodGroup"
-                className=" bg-green-200 p-2 rounded-md shadow-sm shadow-black/20 w-1/6"
+                className="w-full bg-white/80 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all cursor-pointer backdrop-blur-md appearance-none shadow-sm"
                 onChange={(e) => setBloodGroup(e.target.value)}
+                value={bloodGroup}
               >
-                <option value="" selected disabled>
-                  Select Blood Group
-                </option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
+                <option value="" disabled className="bg-white text-slate-400">Select Group</option>
+                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
+                  <option key={bg} value={bg} className="bg-white text-slate-900">{bg}</option>
+                ))}
               </select>
+            </div>
+
+            {/* Blood Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 tracking-wide uppercase">
+                <Activity className="w-4 h-4 text-red-600" />
+                Blood Type
+              </label>
               <select
                 name="bloodType"
-                className=" bg-green-200 p-2 rounded-md shadow-sm shadow-black/20 w-1/6"
+                className="w-full bg-white/80 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all cursor-pointer backdrop-blur-md appearance-none shadow-sm"
                 onChange={(e) => setBloodType(e.target.value)}
+                value={bloodType}
               >
-                <option value="" selected disabled>
-                  Select Blood Type
-                </option>
-                <option value="Whole Blood">Whole Blood</option>
-                <option value="Single Donor Platelet">
-                  Single Donor Platelet
-                </option>
-                <option value="Single Donor Plasma">Single Donor Plasma</option>
-                <option value="Sagm Packed Red Blood Cells">
-                  Sagm Packed Red Blood Cells
-                </option>
-                <option value="Random Donor Platelets">
-                  Random Donor Platelets
-                </option>
-                <option value="Platelet Rich Plasma">
-                  Platelet Rich Plasma
-                </option>
-                <option value="Platelet Concentrate">
-                  Platelet Concentrate
-                </option>
-                <option value="Plasma">Plasma</option>
-                <option value="Packed Red Blood Cells">
-                  Packed Red Blood Cells
-                </option>
-                <option value="Leukoreduced RBC">Leukoreduced RBC</option>
-                <option value="Irradiated RBC">Irradiated RBC</option>
-                <option value="Fresh Frozen Plasma">Fresh Frozen Plasma</option>
-                <option value="Cryoprecipitate">Cryoprecipitate</option>
-                <option value="Cryo Poor Plasma">Cryo Poor Plasma</option>
+                <option value="" disabled className="bg-white text-slate-400">Select Type</option>
+                {[
+                  "Whole Blood", "Single Donor Platelet", "Single Donor Plasma",
+                  "Sagm Packed Red Blood Cells", "Random Donor Platelets",
+                  "Platelet Rich Plasma", "Platelet Concentrate", "Plasma",
+                  "Packed Red Blood Cells", "Leukoreduced RBC", "Irradiated RBC",
+                  "Fresh Frozen Plasma", "Cryoprecipitate", "Cryo Poor Plasma"
+                ].map((bt) => (
+                  <option key={bt} value={bt} className="bg-white text-slate-900">{bt}</option>
+                ))}
               </select>
-              <button
-                className=" p-2 pl-4 pr-4 bg-green-700 text-white rounded-md hover:cursor-pointer hover:shadow-sm shadow-black/20"
-                onClick={handleStockSearch}
-              >
-                Search
-              </button>
             </div>
           </div>
-          <div className="mt-6 mb-8 max-h-80 overflow-y-auto border border-gray-200 rounded-md">
-            <table className="w-full table-fixed border-collapse">
-              <thead className="sticky top-0 z-10 bg-green-100">
-                <tr>
-                  <th className="px-4 py-2 text-center font-semibold text-black border border-gray-300">
-                    Blood Bank Name
-                  </th>
-                  <th className="px-4 py-2 text-center font-semibold text-black border border-gray-300">
-                    Blood Group
-                  </th>
-                  <th className="px-4 py-2 text-center font-semibold text-black border border-gray-300">
-                    Blood Type
-                  </th>
-                  <th className="px-4 py-2 text-center font-semibold text-black border border-gray-300">
-                    Availability
-                  </th>
+
+          <div className="mt-8 flex justify-end">
+            <button
+              className="bg-red-600 hover:bg-red-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 group w-full md:w-auto justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-red-500"
+              onClick={handleStockSearch}
+              disabled={loading || !state || !city || !bloodGroup || !bloodType}
+            >
+              <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              {loading ? "Searching..." : "Search Availability"}
+            </button>
+          </div>
+        </div>
+
+        {/* Results Section */}
+        <div className="glass-panel rounded-3xl overflow-hidden border-slate-200 shadow-[0_0_20px_rgba(0,0,0,0.03)]/50 bg-white/80">
+          <div className="px-6 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-900 tracking-wide">Search Results</h3>
+            {stockData.length > 0 && (
+              <span className="text-xs font-bold bg-red-100 border border-red-200 text-red-600 px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                {stockData.length} {stockData.length === 1 ? 'Bank' : 'Banks'} Found
+              </span>
+            )}
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-100/50">
+                  <th className="px-6 py-5 text-xs font-bold text-slate-600 uppercase tracking-widest">Blood Bank</th>
+                  <th className="px-6 py-5 text-xs font-bold text-slate-600 uppercase tracking-widest">Blood Group</th>
+                  <th className="px-6 py-5 text-xs font-bold text-slate-600 uppercase tracking-widest">Component Type</th>
+                  <th className="px-6 py-5 text-xs font-bold text-slate-600 uppercase tracking-widest w-40">Status/Qty</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {stockData.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-4 font-semibold text-red-500"
-                    >
-                      {tableInfo}
+                    <td colSpan="4" className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center text-slate-400">
+                        <AlertCircle className="w-12 h-12 text-slate-300 mb-4" />
+                        <p className="font-bold text-slate-900 text-xl">{tableInfo}</p>
+                        <p className="text-sm mt-2 text-slate-600 font-medium">Try adjusting your search criteria or selecting a different city.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   stockData.map((stock, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 text-center border border-gray-300">
-                        {stock.bloodBankName}
+                    <tr key={index} className="hover:bg-slate-50 transition-colors duration-200 group">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0 border border-slate-200 group-hover:bg-red-50 group-hover:text-red-500 group-hover:border-red-200 transition-all">
+                            <Building2 className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-slate-900 tracking-wide">{stock.bloodBankName}</span>
+                        </div>
                       </td>
-                      <td className="px-4 py-2 text-center border border-gray-300">
-                        {stock.bloodGroup}
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-red-100 text-red-600 font-bold text-sm border border-red-200">
+                          {stock.bloodGroup}
+                        </span>
                       </td>
-                      <td className="px-4 py-2 text-center border border-gray-300">
+                      <td className="px-6 py-5 text-sm font-semibold text-slate-600">
                         {stock.bloodType}
                       </td>
-                      <td className="px-4 py-2 text-center border border-gray-300">
-                        {stock.quantity}
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-sm font-bold border border-emerald-200 shadow-sm">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm"></div>
+                          {stock.quantity} Units
+                        </span>
                       </td>
                     </tr>
                   ))
@@ -1098,8 +1108,8 @@ function Availability() {
             </table>
           </div>
         </div>
-      </section>
-    </>
+      </main>
+    </div>
   );
 }
 

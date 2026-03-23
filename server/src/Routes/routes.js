@@ -14,7 +14,6 @@ const {
   updateBloodStock,
   deleteBloodStock,
 } = require("../Models/userModel.js");
-const { auth, messaging } = require("firebase-admin");
 
 const router = express.Router();
 

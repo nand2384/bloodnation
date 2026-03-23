@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
+import { Search, Filter, Edit2, Trash2, Droplet, MapPin, Building, AlertCircle } from "lucide-react";
+import { useDialogue } from "../Components/Common/Dialogue/DialogueContext.jsx";
 
 function AdminAvailability() {
   const [bloodStock, setBloodStock] = useState([]);
@@ -13,6 +15,7 @@ function AdminAvailability() {
   const [filterType, setFilterType] = useState("");
 
   const navigate = useNavigate();
+  const { showAlert, showConfirm } = useDialogue();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editData, setEditData] = useState({});
@@ -51,7 +54,7 @@ function AdminAvailability() {
         } else if (response.status == 401) {
           const responseData = await response.json();
           const errorMessage = responseData.message;
-          alert(message);
+          showAlert(errorMessage, 'error');
         }
       } catch (error) {
         console.log("Error fetching /update/bloodstock: ", error);
@@ -974,334 +977,284 @@ function AdminAvailability() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#020617] flex font-sans selection:bg-rose-500/30 selection:text-rose-100 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[10%] left-[30%] w-[40vw] h-[40vw] bg-rose-600/10 rounded-full blur-[100px] mix-blend-screen animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-[10%] right-[10%] w-[45vw] h-[45vw] bg-indigo-900/10 rounded-full blur-[100px] mix-blend-screen animate-blob"></div>
+      </div>
+
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-blue-200">
-          <div className="flex flex-col items-center justify-center bg-white/30 p-8 rounded-2xl shadow-2xl border border-white/40 backdrop-blur-lg">
-            <div className="w-10 h-10 border-4 border-t-transparent border-blue-400 rounded-full animate-spin"></div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md bg-slate-950/60 transition-all">
+          <div className="flex flex-col items-center justify-center glass-panel p-8 rounded-3xl">
+             <div className="w-12 h-12 border-4 border-slate-700 border-t-red-500 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(239,68,68,0.5)]"></div>
+             <p className="text-sm font-bold text-white tracking-wide">Processing...</p>
           </div>
         </div>
       )}
-      <div className="flex h-screen">
-        <Sidebar />
-        <div className="flex-1 bg-white overflow-auto">
-          <div className="flex items-center justify-between p-4 border-b shadow">
-            <h1 className="text-2xl font-semibold text-blue-900">
+
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        <header className="glass-panel border-b border-x-0 border-t-0 border-white/10 px-8 py-5">
+            <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-md flex items-center gap-3">
+              <Droplet className="w-6 h-6 text-red-500" />
               Blood Availability Details
             </h1>
-          </div>
+        </header>
 
-          {/* Search Section */}
-          <div className="px-6 pt-6">
-            <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
-              <h2 className="font-semibold text-blue-800 mb-4">Search</h2>
+        <main className="flex-1 p-6 overflow-y-auto space-y-6">
+          {/* Search & Filter Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Search Card */}
+            <div className="glass-panel rounded-2xl p-6 border-white/10 relative overflow-hidden group hover:border-red-500/20 transition-all duration-300">
+              <div className="flex items-center gap-2 mb-5">
+                 <Search className="w-5 h-5 text-red-400" />
+                 <h2 className="text-lg font-bold text-white tracking-wide">Search Location</h2>
+              </div>
+              
               <div className="flex flex-wrap gap-4">
-                <select
-                  name="state"
-                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
-                  onChange={(e) => setState(e.target.value)}
-                >
-                  <option value="" selected disabled>
-                    Select State
-                  </option>
-                  <option value="Andhra Pradesh">Andhra Pradesh</option>
-                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                  <option value="Assam">Assam</option>
-                  <option value="Bihar">Bihar</option>
-                  <option value="Chandigarh">Chandigarh</option>
-                  <option value="Chhattisgarh">Chhattisgarh</option>
-                  <option value="Daman and Diu">Daman and Diu</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Goa">Goa</option>
-                  <option value="Gujarat">Gujarat</option>
-                  <option value="Haryana">Haryana</option>
-                  <option value="Himachal Pradesh">Himachal Pradesh</option>
-                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                  <option value="Jharkhand">Jharkhand</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Kerala">Kerala</option>
-                  <option value="Ladakh">Ladakh</option>
-                  <option value="Madhya Pradesh">Madhya Pradesh</option>
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Manipur">Manipur</option>
-                  <option value="Meghalaya">Meghalaya</option>
-                  <option value="Mizoram">Mizoram</option>
-                  <option value="Nagaland">Nagaland</option>
-                  <option value="Odisha">Odisha</option>
-                  <option value="Puducherry">Puducherry</option>
-                  <option value="Punjab">Punjab</option>
-                  <option value="Rajasthan">Rajasthan</option>
-                  <option value="Sikkim">Sikkim</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Telangana">Telangana</option>
-                  <option value="Tripura">Tripura</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="Uttarakhand">Uttarakhand</option>
-                  <option value="West Bengal">West Bengal</option>
-                </select>
-                <select
-                  name="city"
-                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
-                  onChange={(e) => setCity(e.target.value)}
-                >
-                  <option value="" selected disabled>
-                    Select City
-                  </option>
-                  {citiesList.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="bg-blue-900 text-white px-4 py-2 rounded-md shadow hover:bg-blue-800 cursor-pointer"
-                  onClick={fetchBloodStock}
-                >
-                  Search
-                </button>
+                 <div className="flex-1 min-w-[200px]">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <MapPin className="h-4 w-4 text-slate-500" />
+                      </div>
+                      <select
+                        name="state"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 appearance-none backdrop-blur-sm cursor-pointer"
+                        onChange={(e) => setState(e.target.value)}
+                        value={state}
+                      >
+                        <option value="" disabled>Select State</option>
+                        {Object.keys(stateCityMap).map((s) => (
+                          <option key={s} value={s} className="bg-slate-900 text-white">{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                 </div>
+                 
+                 <div className="flex-1 min-w-[200px]">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <Building className="h-4 w-4 text-slate-500" />
+                      </div>
+                      <select
+                        name="city"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 appearance-none backdrop-blur-sm cursor-pointer disabled:opacity-50"
+                        onChange={(e) => setCity(e.target.value)}
+                        value={city}
+                        disabled={!state}
+                      >
+                        <option value="" disabled>Select City</option>
+                        {citiesList.map((c) => (
+                          <option key={c} value={c} className="bg-slate-900 text-white">{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                 </div>
+
+                 <button
+                   className="px-6 py-2.5 bg-red-600/90 hover:bg-red-500 text-white rounded-xl font-bold transition-all duration-300 shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] cursor-pointer disabled:opacity-50"
+                   onClick={fetchBloodStock}
+                   disabled={!state || !city}
+                 >
+                   Search
+                 </button>
               </div>
             </div>
-          </div>
 
-          {/* Filter Section */}
-          <div className="px-6">
-            <div className="border p-4 rounded-lg shadow-md bg-white mb-4">
-              <h2 className="font-semibold text-blue-800 mb-4">Filter</h2>
-              <div className="flex flex-wrap gap-4">
+            {/* Filter Card */}
+            <div className="glass-panel rounded-2xl p-6 border-white/10 relative overflow-hidden group hover:border-red-500/20 transition-all duration-300">
+              <div className="flex items-center gap-2 mb-5">
+                 <Filter className="w-5 h-5 text-indigo-400" />
+                 <h2 className="text-lg font-bold text-white tracking-wide">Filter Results</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <select
                   value={filterName}
                   onChange={(e) => setFilterName(e.target.value)}
-                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                  className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none backdrop-blur-sm cursor-pointer"
                 >
-                  <option value="">All Bank Names</option>
-                  {[...new Set(bloodStock.map((b) => b.bloodBankName))].map(
-                    (name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    )
-                  )}
+                  <option value="" className="bg-slate-900">All Bank Names</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodBankName))].map((name) => (
+                    <option key={name} value={name} className="bg-slate-900">{name}</option>
+                  ))}
                 </select>
 
                 <select
                   value={filterGroup}
                   onChange={(e) => setFilterGroup(e.target.value)}
-                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                  className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none backdrop-blur-sm cursor-pointer"
                 >
-                  <option value="">All Blood Groups</option>
-                  {[...new Set(bloodStock.map((b) => b.bloodGroup))].map(
-                    (group) => (
-                      <option key={group} value={group}>
-                        {group}
-                      </option>
-                    )
-                  )}
+                  <option value="" className="bg-slate-900">All Blood Groups</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodGroup))].map((group) => (
+                    <option key={group} value={group} className="bg-slate-900">{group}</option>
+                  ))}
                 </select>
 
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="border p-2 rounded-md shadow w-52 hover:cursor-pointer"
+                  className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none backdrop-blur-sm cursor-pointer"
                 >
-                  <option value="">All Blood Types</option>
-                  {[...new Set(bloodStock.map((b) => b.bloodType))].map(
-                    (type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    )
-                  )}
+                  <option value="" className="bg-slate-900">All Blood Types</option>
+                  {[...new Set(bloodStock.map((b) => b.bloodType))].map((type) => (
+                    <option key={type} value={type} className="bg-slate-900">{type}</option>
+                  ))}
                 </select>
               </div>
             </div>
           </div>
 
           {/* Table Section */}
-          <div className="p-6 text-gray-800">
-            <div className="overflow-x-auto">
-              <div className="overflow-y-auto">
-                <table className="min-w-full table-auto border-collapse border border-gray-300">
-                  <thead className="bg-blue-900 text-white sticky top-0 z-10">
+          <div className="glass-panel rounded-2xl border-white/10 overflow-hidden flex flex-col h-[calc(100vh-320px)] min-h-[400px]">
+             <div className="overflow-x-auto flex-1">
+                <table className="w-full text-left border-collapse">
+                  <thead className="sticky top-0 bg-slate-900/90 backdrop-blur-md z-20 border-b border-white/10">
                     <tr>
-                      <th className="px-4 py-2 border">Blood Bank Name</th>
-                      <th className="px-4 py-2 border">Blood Group</th>
-                      <th className="px-4 py-2 border">Blood Type</th>
-                      <th className="px-4 py-2 border">Quantity</th>
-                      <th className="px-4 py-2 border">Actions</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Blood Bank Name</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Group</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Quantity</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {bloodStock.length === 0 ? (
                       <tr>
-                        <td
-                          colSpan="5"
-                          className="text-center py-4 font-semibold text-red-500"
-                        >
-                          {tableInfo}
+                        <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                             <AlertCircle className="w-8 h-8 text-slate-500 opacity-50" />
+                             <p className="text-lg font-medium">{tableInfo}</p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       bloodStock
                         .filter(
                           (bank) =>
-                            (!filterName ||
-                              bank.bloodBankName === filterName) &&
+                            (!filterName || bank.bloodBankName === filterName) &&
                             (!filterGroup || bank.bloodGroup === filterGroup) &&
                             (!filterType || bank.bloodType === filterType)
                         )
                         .map((bank, index) => (
-                          <tr key={bank.id || index} className="border-t">
-                            <td className="px-4 py-2 border">
-                              {bank.bloodBankName}
+                          <tr key={bank.id || index} className="hover:bg-white/5 transition-colors group">
+                            <td className="px-6 py-4 font-medium text-white">{bank.bloodBankName}</td>
+                            <td className="px-6 py-4 text-center">
+                               <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                                 {bank.bloodGroup}
+                               </span>
                             </td>
-                            <td className="px-4 py-2 border">
-                              {bank.bloodGroup}
-                            </td>
-                            <td className="px-4 py-2 border">
-                              {bank.bloodType}
-                            </td>
-                            <td className="px-4 py-2 border">
-                              {bank.quantity}
-                            </td>
-                            <td className="px-4 py-2 border">
-                              <button
-                                onClick={() => handleEdit(bank)}
-                                className="text-blue-600 hover:underline mr-4 hover:cursor-pointer"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(bank.id)}
-                                className="text-red-600 hover:underline hover:cursor-pointer"
-                              >
-                                Delete
-                              </button>
+                            <td className="px-6 py-4 text-slate-300">{bank.bloodType}</td>
+                            <td className="px-6 py-4 text-center font-bold text-white">{bank.quantity}</td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleEdit(bank)}
+                                  className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors border border-transparent hover:border-indigo-500/30"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(bank.id)}
+                                  className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors border border-transparent hover:border-red-500/30"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
                     )}
                   </tbody>
                 </table>
-              </div>
-            </div>
+             </div>
           </div>
-        </div>
+        </main>
       </div>
 
-      {/* Modal section */}
+      {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/70 bg-opacity-40 flex items-center justify-center z-30 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-center text-blue-900 mb-6">
-              Edit Blood Stock Details
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={handleCloseModal}></div>
+          <div className="relative glass-panel rounded-3xl w-full max-w-2xl border-white/10 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+               <Edit2 className="w-6 h-6 text-indigo-400" />
+               Edit Blood Stock Details
             </h2>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Blood Type
-                </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Blood Type */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-bold text-slate-300 ml-1 tracking-wider uppercase">Blood Type</label>
                 <select
                   value={editData.bloodType}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
-                  onChange={(e) =>
-                    setEditData({ ...editData, bloodType: e.target.value })
-                  }
+                  className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none backdrop-blur-sm shadow-inner"
+                  onChange={(e) => setEditData({ ...editData, bloodType: e.target.value })}
                 >
-                  <option value="" disabled>
-                    Select Blood Type
-                  </option>
-                  <option value="Whole Blood">Whole Blood</option>
-                  <option value="Single Donor Platelet">
-                    Single Donor Platelet
-                  </option>
-                  <option value="Single Donor Plasma">
-                    Single Donor Plasma
-                  </option>
-                  <option value="Sagm Packed Red Blood Cells">
-                    Sagm Packed Red Blood Cells
-                  </option>
-                  <option value="Random Donor Platelets">
-                    Random Donor Platelets
-                  </option>
-                  <option value="Platelet Rich Plasma">
-                    Platelet Rich Plasma
-                  </option>
-                  <option value="Platelet Concentrate">
-                    Platelet Concentrate
-                  </option>
-                  <option value="Plasma">Plasma</option>
-                  <option value="Packed Red Blood Cells">
-                    Packed Red Blood Cells
-                  </option>
-                  <option value="Leukoreduced RBC">Leukoreduced RBC</option>
-                  <option value="Irradiated RBC">Irradiated RBC</option>
-                  <option value="Fresh Frozen Plasma">
-                    Fresh Frozen Plasma
-                  </option>
-                  <option value="Cryoprecipitate">Cryoprecipitate</option>
-                  <option value="Cryo Poor Plasma">Cryo Poor Plasma</option>
+                  <option value="" disabled className="bg-slate-900">Select Blood Type</option>
+                  {[
+                    "Whole Blood", "Single Donor Platelet", "Single Donor Plasma", 
+                    "Sagm Packed Red Blood Cells", "Random Donor Platelets", 
+                    "Platelet Rich Plasma", "Platelet Concentrate", "Plasma", 
+                    "Packed Red Blood Cells", "Leukoreduced RBC", "Irradiated RBC", 
+                    "Fresh Frozen Plasma", "Cryoprecipitate", "Cryo Poor Plasma"
+                  ].map(type => (
+                      <option key={type} value={type} className="bg-slate-900">{type}</option>
+                  ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Blood Group
-                </label>
+              {/* Blood Group */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 ml-1 tracking-wider uppercase">Blood Group</label>
                 <select
                   value={editData.bloodGroup}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 hover:cursor-pointer"
-                  onChange={(e) =>
-                    setEditData({ ...editData, bloodGroup: e.target.value })
-                  }
+                  className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none backdrop-blur-sm shadow-inner"
+                  onChange={(e) => setEditData({ ...editData, bloodGroup: e.target.value })}
                 >
-                  <option value="" disabled>
-                    Select Blood Type
-                  </option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
+                  <option value="" disabled className="bg-slate-900">Select Blood Group</option>
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(group => (
+                    <option key={group} value={group} className="bg-slate-900">{group}</option>
+                  ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Quantity
-                </label>
+              {/* Quantity */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 ml-1 tracking-wider uppercase">Quantity</label>
                 <input
                   type="number"
                   value={editData.quantity}
-                  onChange={(e) =>
-                    setEditData({ ...editData, quantity: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  onChange={(e) => setEditData({ ...editData, quantity: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 backdrop-blur-sm shadow-inner"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-4 mt-6">
+            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-white/10">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 hover:cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all border border-white/10"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveChanges}
-                className="px-4 py-2 rounded-md bg-blue-900 hover:bg-blue-800 text-white hover:cursor-pointer"
+                disabled={errorStatus || loading}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(79,70,229,0.4)] hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] disabled:opacity-50 border border-indigo-500/50"
               >
-                Save
+                Save Updates
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

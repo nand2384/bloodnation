@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
+import { useDialogue } from "../Components/Common/Dialogue/DialogueContext.jsx";
 
 function AddBank() {
   const [bloodBankName, setBloodBankName] = useState("");
@@ -19,6 +20,7 @@ function AddBank() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { showAlert } = useDialogue();
 
   useEffect(() => {
     const status = sessionStorage.getItem("admin");
@@ -884,8 +886,8 @@ function AddBank() {
       if (bankId) {
         navigator.clipboard.writeText(password);
         navigator.clipboard.writeText(bankId);
-        alert(
-          `Bank Id is ${bankId} and password - ${password}, both are copied to clipboard, just paste it!`
+        showAlert(
+          `Bank Id is ${bankId} and password - ${password}, both are copied to clipboard, just paste it!`, 'success'
         );
         setBloodBankName("");
         setState("");

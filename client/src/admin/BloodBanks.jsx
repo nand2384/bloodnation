@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
+import { useDialogue } from "../Components/Common/Dialogue/DialogueContext.jsx";
 
 function BloodBanks() {
   const [bloodBank, setBloodBank] = useState([]);
@@ -10,6 +11,7 @@ function BloodBanks() {
   const [tableInfo, setTableInfo] = useState("Search for Blood Stock!");
 
   const navigate = useNavigate();
+  const { showAlert, showConfirm } = useDialogue();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editData, setEditData] = useState({});
@@ -48,7 +50,7 @@ function BloodBanks() {
         } else if(response.status == 401) {
           const responseBody = await response.json();
           const errorMessage = responseBody.message;
-          alert(message);
+          showAlert(errorMessage, 'error');
         }
       } catch (error) {
         console.log("Error fetching /update/bloodbank: ", error);
@@ -943,7 +945,8 @@ function BloodBanks() {
   }, [bloodBank])
 
   const handleDelete = async (docId) => {
-    if (window.confirm("Do you want to delete this blood bank?")) {
+    const isConfirmed = await showConfirm("Do you want to delete this blood bank?");
+    if (isConfirmed) {
       setLoading(true);
       try {
         const response = await fetch(
@@ -962,7 +965,7 @@ function BloodBanks() {
           return;
         } else if (responseStatus == 401) {
           const responseData = await response.json();
-          alert(responseData.message);
+          showAlert(responseData.message, 'error');
         }
       } catch (error) {
         console.log("Error fetching /delete/bloodbank: ", error);

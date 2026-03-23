@@ -2,7 +2,6 @@ const { db } = require("../../firebase.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const e = require("express");
 dotenv.config();
 
 const SECRET_KEY = process.env.JWT_KEY;
